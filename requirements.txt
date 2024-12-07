@@ -1,0 +1,8 @@
+readability-lxml
+trafilatura
+bs4
+newspaper3k
+gne
+colorlog
+aiohttp
+openai
