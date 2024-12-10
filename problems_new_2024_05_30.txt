@@ -1,0 +1,2416 @@
+/**********************************************************************
+ * Copyright (C) 2023. IEucd Inc. All rights reserved.
+ * @Author: weiyutao
+ * @Date: 2023-11-09 12:26:06
+ * @Last Modified by: weiyutao
+ * @Last Modified time: 2023-11-09 12:26:06
+ * @Description: some problems we have meet.
+***********************************************************************/
+
+linux相关的，包含cv和nlp
+cmake update 3.6 used gmake:
+cd ~/myApp
+wget https://cmake.org/files/v3.6/cmake-3.6.2.tar.gz
+tar xvf cmake-3.6.2.tar.gz
+cd cmake-3.6.2/
+./bootstrap
+gmake
+gmake install
+/usr/local/bin/cmake --version
+remove cmake  // 移除原来的cmake，也可以不移除。
+cd /usr/bin
+cp ./cmake ./cmake.bak
+cp /usr/local/bin/cmake ./
+`cmake --version`
+
+cd /home/usr/opencv-4.7.0
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local/opencv_gcc9_cuda -DOPENCV_EXTRA_MODULES_PATH=/work/soft/opencv/opencv_contrib-4.7.0/modules -DBUILD_opencv_legacy=OFF ..
+make -j2
+make install
+will install to /usr/local.
+snipaste one picture each 30 seconds.
+ffmpeg -i /gl_data/video-sample/label1/1.AVI -vf "select='not(mod(t,30))'" -vsync vfr output-%03d.png
+
+yolov5
+1 import module error.
+    这种错误很常见，一般是存在重复名称的模块，系统导包存在二义性，比如常见的utils包
+    yolov5官方有utils包，我们自己本地也有，python也有utils官方包，如果
+    安装了多个，在导报的时候会优先从python官方查找，所以会报错
+
+2 can find module ..
+    这种错误一般是包的路径错误，sys.path.append即可
+
+3 version libcudnn_ops_infer.so.8 not defined in file libcudnn_ops_infer.so.8
+    pip安装的cuda版本和硬件版本不一致。
+
+4 cuda运行环境
+    https://developer.nvidia.com/cuda-toolkit-archive
+    下载cuda
+    cuda、cudnn、torch，并且版本需要兼容
+    nvidia-smi查看cuda版本
+    https://pytorch.org/get-started/previous-versions/
+    可以根据对应的cuda版本安装对应的torch和torchvision
+
+5 cudnn版本
+    https://developer.nvidia.com/rdp/cudnn-archive
+    下载地址，按照cuda版本找对应的版本下载
+    cat /gl_data/soft/cudnn-linux-x86_64-8.9.6.50_cuda11-archive/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
+    8.9.6
+
+6 torch版本
+    根据以上版本选择去官网选择对应的torch版本
+
+7 nohup
+    nohup npm run dev >/dev/null 1>&2 &
+    2>&1 将标准错误重定向为标准输出
+    & 后台启动
+
+8 ffmpeg
+    ffmpeg -i file, return the movie information.
+    ffmpeg -i /gl_data/video-sample/label0/1.AVI frame_%04d.png
+
+9 JSONObject jsonObject = new JSONObject();
+    如果使用jsonObject.put相同的key后一个会覆盖掉前一个对应的值。
+
+10 方法的重写
+    当我们使用基类的指针调用虚函数时，实际执行的实派生类中重写的函数
+   方法的重载
+    我们可以在同一个类中定义多个名称相同但是参数列表不同的函数
+
+11 如果我们在使用容器的自定义排序算法的时候
+    sort函数中，前两个参数是比较的对象，第三个参数是自定义的比较函数
+    如果比较函数是成员函数，则不能直接将其作为第三个参数传递给std::sort
+    因为成员函数的调用需要一个对象实例来访问。注意这个和成员函数调用
+    成员函数的区别，同一类内部，成员函数可以直接调用其他成员函数
+    不论是公共还是私有成员函数。而如果是间接调用，比如在某个成员函数
+    中将其他成员函数作为第三个参数传递给了std::sort函数。则需要使用
+    一个实例对象来访问
+    如何解决？使用lambda表达式进行排序。。。
+    也可以将自定义排序函数定义为友元函数
+
+12 重复定义的问题，这个一般发生在成员属性上
+    如果我们想要定义类的成员属性，一般情况下是先进行声明，然后在构造函数中进行
+    定义或者是在实现文件中进行定义。注意不要在头文件中定义静态成员属性
+    因为一定会出现重复定义的问题。
+    最好的解决办法：
+        对于专属于某一类的常量
+            可以将其定义为该类的静态成员属性，好处是静态成员属性不需要使用实例访问
+            直接可以使用类名::variable去进行访问。静态成员属性专属于某一类
+            而不依赖于每一个实例。但是要注意的实静态成员属性一定不要在头文件中
+            定义，也一定不要在构造函数中定义。
+
+            也可以非静态成员属性，这样的话你每次都需要进行实例化类才能访问该成员属性
+
+            也可以直接使用宏定义
+    注意静态成员属性一般和静态函数配合使用，静态函数可以直接使用静态成员属性而不需要
+    进行实例化，而非静态成员函数则不能直接访问静态成员属性。
+
+    注意静态成员属性的最大优点是内存效率，因为静态成员属性只有一个副本，不会再在
+    每次初始化实例的时候创建对应的副本，非静态成员属性则会在每次创建实例化对象的
+    时候都创建一个对应的副本，因此对于复用性很强的成员属性一般定义为静态成员属性
+
+    静态成员属性或者函数都可以直接使用类名::进行访问，不需要实例化对象
+    但是缺点也很大，就是静态成员属性的声明周期与整个进程的声明周期相同
+    需要谨慎使用
+
+13 友元函数破坏了类的封装性，因为它可以直接访问私有成员和保护成员
+    那么问题来了，我们使用friend定义了自定义的排序函数后为什么在实际调用的时候就不报错了呢
+
+14 select count(*) from jdggxq where content like '%、成交信息%' and id >=2909019 and id < 2910000;
+    netstat -tuln
+    lsof -i :端口号
+    sudo firewall-cmd --zone=public --add-port=8850/tcp --permanent
+    sudo firewall-cmd --reload
+
+    sudo vim /etc/systemd/system/nacos.service
+    [Unit]
+    Description=Nacos Server
+    After=network.target
+
+    [Service]
+    Environment="JAVA_HOME=/path/to/jdk"
+    Type=forking
+    ExecStart=/path/to/nacos/bin/startup.sh
+    ExecStop=/path/to/nacos/bin/shutdown.sh
+    
+    [Install]
+    WantedBy=multi-user.target
+    sudo systemctl daemon-reload
+
+15 将远端映射到本地端口
+    ssh -L 6006:127.0.0.1:6006 username@server_ip
+
+16 升级cmake
+    wget https://github.com/Kitware/CMake/releases/download/v3.22.0/cmake-3.22.0.tar.gz
+    tar -xf cmake-3.22.0.tar.gz
+    cd ./cmake-3.22.0
+    export root_path=$PWD
+    export install_path=${root_path}/cmake
+    ./bootstrap --prefix=${install_path}
+    make -j
+    make install
+    export PATH=${install_path}/bin:$PATH
+
+17 环境优先级
+    echo $PATH可以查看当前系统查找路径的优先级
+    这个是最终的优先级顺序，但是不同的文件其加载的优先级顺序不同
+    /etc/profile > ~/.bash_profile > ~/.bashrc
+    但是不知道比/etc/profile更高一级的文件在哪里，应该是在/etc/profile.d下的脚本文件中
+    那么现在我们可以通过更改对应优先级的环境变量来达到更新软件版本的目的
+    比如gl_data/soft/miniconda3/bin:/gl_data/soft/miniconda3/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+    可以发现，/usr/local/bin的优先级最高，那么我们可以更改其下的可执行文件
+    但是这里注意如果该命令是单独的这样可以，如果该命令不是单独存在的，如果更改了
+    /usr/local/bin下的可执行文件，也要对应更改软件的安装目录为/usr/local/share/
+    因此为了这样，我们把cmake-3.22安装在了/usr/local/share下
+    因此/usr/local/bin 和/usr/local/share是对应的
+    但是注意如果已经将软件安装在了share目录下，那么就不需要设置系统环境变量了
+    因为这个目录已经在系统环境变量中了。只有不在系统环境变量中的才需要去设置
+    那么注意这个问题，如果安装软件的话可以直接放在/usr/local/bin和/usr/local/share
+    目录下，这样不需要额外设置环境变量
+
+18 卷积后批归一化是一个常规操作，这个是在特征提取的时候，也即下采样。
+    但是在上采样过程中是否也要批归一化呢？首先我们需要了解批归一化的目的。
+    首先最后一层网络不需要批归一化
+    其次，尺寸较小的特征图不需要进行批归一化
+    再次，看数据分布的均衡性，如果极不平衡，则有必要进行批归一化。
+    最后，看数据集的大小，如果训练数据集较小，那么批归一化可以帮助模型的泛化性能，减少过拟合
+    因此是否需要在下采样过程中使用归一化，需要自己视情况而定，没有恒定的标准是与不是去适合所有的模型。
+
+19 softmax
+    是一种激活函数，首先对每个元素进行指数运算，然后将每个指数运算的值在总的指数运算值
+    之和的占比作为新的对应的概率值，这样所有的新的值总和就是1.
+    这种归一化操作使得输出概率可以被解释为对应类别的概率估计，便于在多分类问题
+    中进行预测和决策。
+
+    分割区域损失：
+        比如对于多目标分割算法，我们可以将模型的预测结果进行softmax回归
+        这样我们可以得到一个概率值的图像.然后我们对真实标签掩码图进行one-hot编码
+        也即,比如一张h*w的图像，1个类别，我们进行one-hot编码后会生成1*h*w维度的图像
+        n个类别，我们编码后会生成n*h*w的掩码图。然后使用它和我们softmax后的预测图
+        计算dice损失即可。
+        
+        但是对于二分类的问题，我们可以简化我们的分割区域损失
+        我们可以直接使用sigmoid函数对预测图进行激活，这样我们可以把预测像素
+        缩放到0-1之间。然后计算其和掩码图之间的dice损失。
+
+    分类损失：
+        对于分类损失，同样的，如果是多分类的问题，我们的预测值会突出显示
+        多个类别的预测数据，然后我们有一个真实的mask标签，我们可以对mask
+        标签进行独热编码处理，然后会对应生成和预测值同样维度的数据
+        然后对其计算交叉熵损失，在torch中已经将交叉熵损失进行了封装
+        即只要我们是计算交叉熵损失，意味着我们要处理多分类问题，那么
+        我们只需要给交叉熵损失传入对应的预测值和mask真实标签即可，
+        该函数内部会首先对mask真实标签进行独热编码处理。
+        那么这样的话我们的mask真实标签的格式应该是这样的：
+        对每个类别使用不同的index定义其像素值。比如是个5分类问题
+        对于每个类别的分割区域使用对应的index1-5进行填充即可
+
+20 交叉熵损失和BCE损失
+    交叉熵损失专用于处理多分类问题
+    BCE损失专用于处理二分类问题
+
+21 png
+    无损压缩格式，这样保存不会损害灰度值。jpg或者jpeg都会损坏原始灰度值
+    即图像imwrite的时候会以压缩的形式进行保存，会改变你想要保存的灰度值。
+
+22 激活函数
+    注意激活函数的选择一方面要看映射的范围，一方面要看梯度
+    比如sigmoid和silu，前者是将无穷映射到0-1之间，后者是将无穷映射到一个
+    比1更广范围的输出，也可能是无穷。这两函数都是可微的
+    这两个函数的梯度也不同，前者数值在0的时候梯度将会非常大，而数值接近无穷大的时候
+    将会接近0，所以容易出现梯度消失或者梯度爆炸的问题
+
+    而silu函数的梯度在整个输入范围内都存在，且相对于sigmoid函数的梯度更加平稳，因此
+    很少会出现梯度消失或者梯度爆炸的问题，因此可以更好地传递梯度信息。
+    
+    计算复杂度方面，因为 silu(x) = x * sigmoid(x), sigmoid(x) = 1 / (1 + exp(-x))
+    因此计算复杂度两者相差不大。
+    对于线性函数和非线性函数，深度学习的激活函数只是单纯的以函数的形状区分
+    弯曲的实非线性的，而直线就是线性的，比如Relu是一个分段函数，但是在大于0的区间内
+    是一个线性函数，而sigmoid和silu两个函数都是非线性的。
+    相比于relu函数，因为relu是一个非光滑函数，因为存在分段问题，因此在输入为0的
+    时候或者小于0的时候梯度为0，可能导致在反向传播过程中出现梯度消失的问题。而
+    当输入大于0的时候，梯度恒等于1，因此相比于sigmoid，relu可以避免梯度消失问题。
+    并且relu存在稀疏及活性，当输入为负的时候，relu直接输出为0，也即大部分神经元或者
+    卷积和参数将保持非激活状态，只有部分神经元或者卷积核参数对输入进行激活。这种稀疏性
+    有助于提高网络的表达能力和泛化性能，并且可以减少过拟合风险。
+    并且在计算性能上，relu高于sigmoid太多，因为只涉及到阈值判断和恒等变换，不涉及到指数运算。
+
+    当然，relu也有缺陷，因为其稀疏性可能会导致一些神经元永远不会被激活，为了解决这个问题，可以使用
+    LeakyRelu\ParametricRelu等。
+
+23 神经网络的编写
+    注意在编写的时候首先用cpu进行编写，将所有的报错信息在cpu上都处理完成以后
+    再将模型、输入数据和mask标签数据放到cuda上面。否则cuda上面的报错信息不详细
+    我们排查起来将会非常困难。
+    注意两个交叉熵损失的应用的区别
+    F.CrossEntropy and F.cross_entropy
+
+    input(batch, num_classes, height, width), the channel numbers is num_classes
+    target(batch, height, width), the channel numbers is 1, ignored it.
+    notice it is the fixed type.
+    F.CrossEntropy(input, target), this function will execute softmax
+    function for the input what is the predict result. and then it will
+    reshape the input dimension from (batch, num_classes, height, width)
+    to (*, num_classes) and reshape the target dimension from (batch, height, width)
+    to (*, ), then execute the function F.cross_entropy(input_reshape, target_reshape)
+    then, the function cross_entropy will execute the F.one_hot function
+    for the target_reshape, and then calculate the cross entropy loss value.
+    so we should consider it. we can use any function only when can we 
+    understand them.
+    then we should also consider the relation about the true mask value 
+    and the num_classes number. notice, the background should also be 
+    the one class. so the class numbers should be true classes add 1.
+
+   
+本周完成工作
+    撰写完成基于深度学习的声带疾病诊断系统专利申请文件
+    整理好前期声带标注工作发现的问题
+    撰写完成跨模态搜索系统项目申请技术文档
+    撰写专利/论文：基于maskrcnn的小样本声带疾病检测算法（网络结构设计）
+下周工作计划
+    准备武器装备目标检测Demo演示
+    基于现有的声带疾病诊断系统产品化视觉诊断系统（一键训练和检测模块已经完毕，缺少标签管理和在线标注模块）
+    声带疾病标注工作，需要扩展和相关方面专家的沟通渠道
+    检测模型优化：基于maskrcnn的小样本声带疾病检测算法
+
+
+默认传参
+    注意在cpp中如果想要传递默认参数，那么需要再函数的声明处传递，在函数的实现处不做任何处理。
+    如果想要传递的默认参数是类的成员属性，那么可以在头文件中声明静态的成员属性，然后在实现文件中定义。
+
+    注意没有特殊的要求，一般是在头文件中声明类的成员属性，在实现文件中定义
+    如果一定要在头文件中定义类的成员属性，则要使用inline关键字
+    当然，cpp限定了inline可以修饰的成员属性的类型，一般是基本的数据类型，整型，浮点型，枚举类型和指针引用等等
+    像模板或者自定义的数据类型不能再头文件中进行定义，一般是在头文件中声明，然后在实现文件中定义
+    在实现文件中定义的时候也有两种方式，第一可以直接定义，第二种是在构造函数中定义
+    
+conda create 
+    conda create --name yolov5 --clone yolov8
+
+cpp中如果想在编译阶段使用某一个变量，需要使用宏定义
+比如想要使用编译器的判断条件做注释，则需要定义对应的变量在宏处。
+
+如果在当前目录下可以调用成功，但是在其他目录调用失败，则一定是程序中存在相对路径
+常见于给后台脚本配置接口的时候，使用java调用程序执行失败，但是自行运行脚本却成功。那么换个目录试下看
+能否成功就可以排除是否存在相对路径了。
+
+62服务器nginx配置
+/usr/local/nginx/conf/nginx.conf
+
+编译安装nginx  --with-http_stub_status_module
+./configure --prefix=/usr/local/nginx --with-http_stub_status_module
+
+无密码进入mysql
+skip-grant-tables  >> vim /etc/my.cnf -- 
+systemctl restart mysqld.service
+或者
+mysqld_safe --skip-grant-tables &
+可以直接无密码进入
+
+删除唯一键
+ALTER TABLE project_info DROP INDEX unique_user_id
+添加唯一键
+ALTER TABLE project_info ADD CONSTRAINT unique_project_name UNIQUE (project_name)
+
+list_projects() {
+const user_id = this.$store.state.account.user.account
+console.log(user_id)
+projectManagement.list_projects({ user_id }).then (response => {
+    this.thumbnails = response.data
+})
+},
+最简单的参数传递办法，前端传递{ variable }
+此时后端将会接受到字符串{"variable": variable.value}
+然后我们在后端使用
+RequestParam("variable") String variable去接受即可直接拿到对应的参数值
+
+
+std::atoi   char * -> int
+std::stoi   string -> int
+
+git_resource/*
+important_backfile/*
+123/*
+nlp_model/*
+package_store/*
+public_datasets/*
+**/*.pdparams
+**/*.json
+**/*.xml
+**/*.jpg
+**/*.jpeg
+**/*.png
+**/*.gif
+**/*.bmp
+**/*.svg
+**/*.mp4
+**/*.avi
+**/*.mov
+**/*.pt
+**/*.txt
+**/*.safetensors
+**/*.msgpack
+**/*.bin
+**/*.h5
+**/*.tar
+
+
+
+ssh git push operation.
+1 cd ~/.ssh
+2 ssh-keygen -t rsa -C "your email" -f ~/.ssh/your_ssh_key_name
+    enter for ever
+    this command will generate two file 
+    ~/.ssh/your_ssh_key_name and ~/.ssh/your_ssh_key_name.pub
+3 then login your account from github.com -> 
+    setting -> SSH and GPG keys -> new SSH key
+    you should commit the content of file ~/.ssh/your_ssh_key_name.pub
+    and then you can create the ssh key successfully.
+4 then add the file ~/.ssh/your_ssh_key_name in your git.
+
+    ERROR: Repository not found.
+    致命错误：无法读取远程仓库。
+
+    请确认您有正确的访问权限并且仓库存在。
+    you should execute the command:
+        eval "$(ssh-agent -s)" && ssh-add ~/.ssh/your_ssh_key_name && ssh -T git@github.com
+    if your operations have done correctly, you will look the content as follow
+        as the standard output in the current terminal:
+        Hi ×××××! You've successfully authenticated, but GitHub does not provide shell access.
+        notice the user_name ××××× is same as your github account.
+5 create one new repository in your github repository.
+6 operate the ssh push as the command that official provided. just like as follow:
+    echo "# *****" >> README.md
+    git init
+    git add README.md
+    git commit -m "first commit"
+    git branch -M main
+    git remote add origin git@github.com:×××××/your repository.git
+    git push -u origin main
+
+    git init
+    git add .
+    git commit -m "image classify and description used multimode program that used qwen2-vl-7b in swift framework."
+    git branch -M multimode_class
+    git remote add origin ssh://weiyutao@192.168.2.37:29418/model/shenhaiAI.git
+    git push -u origin multimode_class
+
+
+
+7 notice, you should ensure the git config for your current local repository
+    is correct, or you will fail to push the loacal repository to remote repository.
+    you can use the command git config --list or git config --global --list
+8 if the error occrued.
+    (base) [root@localhost opencv_cpp]# git push -u origin main
+    ssh: Could not resolve hostname github.com: Name or service not known
+    致命错误：无法读取远程仓库。
+    请确认您有正确的访问权限并且仓库存在。
+    you should consider the dns server.
+    (base) [root@localhost opencv_cpp]# ping github.com
+    ping: github.com: 未知的名称或服务
+    
+    then, how to handler?
+        1 ping 8.8.8.8 what is the google dns server. to ensure your machine can
+        connect to the net correct.
+        2 check the local machine ip mapping
+            cat /etc/hosts
+        3 if you have failed to find the github.com mapping, you can 
+        add it in /etc/hosts file.
+        4 20.205.243.166 github.com
+        5 notice, this is one solution that add the ip address mapping
+        human editors. you'd better handler it by the dns server.
+9 git rm -r --cached . 移除所有缓存
+10 git remote set-url origin git@github.com:wytyl13/weiyutao_nlp.git
+    update the url
+
+git branch -D "branch_name"  # 删除分支
+git checkout -b znsd   # 切换znsd分支并切换到分支上
+git remote add origin http://git.srcvx.com:42708/weiyutao/auto_work.git   # 给当前分支添加远程仓库地址
+git remote rm origin   # 删除分支
+
+
+git filter-branch --tree-filter "rm -f weights/yolov5x.wts"
+删除掉大的缓存
+然后
+git add .
+git commit -m "commit at 2024_2_6_1800"
+git push -u origin main
+
+
+24 c++ compiler error:
+    libmyplugins_yolov5.so：对‘std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::c_str() const’未定义的引用
+    libmyplugins_yolov5.so：对‘std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string()’未定义的引 用
+    if you have found this error when you compiled your program, 
+    it is generally not your code problems, it should be 
+    the c++ standard problems, and it should be better to the problems about the gcc version
+    what you have used in your program. just like, if you have complied your code with
+    the different gcc version, just like the third library you used gcc 4.8 to compiler, 
+    and used the gcc 5.0 to compiler your program, and these two version used the different 
+    c++ standard, so you will meet this error when you compiled your program.
+    to handler this problem, you can just add the compiler opetion in your cmakelists as follow:
+        add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+    it should be able to handle your problems.
+
+25 install dlib
+    select the suitable version. some version need the 
+    c++14 standard.
+
+    cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1 && make && make install
+    you will compiler and success install. and
+    the path of install is generally /usr/local/include/dlib/
+    and /usr/local/lib64/
+
+    if you have failed to check the environment that error information is 
+    about cuDNN V5.0 OR GREATER NOT FOUND.  DLIB WILL NOT USE CUDA.
+    you should set the cudnn path add the cmake command.
+    cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1  -DCMAKE_PREFIX_PATH="/your_cudnn_path"
+    then you should ensure you have successful installed the cudnn or the build won't work.
+    ```
+    cudnn binary install method:
+        tar -xvf cudnn-linux-$arch-8.x.x.x_cudaX.Y-archive.tar.xz
+        sudo cp cudnn-*-archive/include/cudnn*.h /usr/local/cuda/include 
+        sudo cp -P cudnn-*-archive/lib/libcudnn* /usr/local/cuda/lib64 
+        sudo chmod a+r /usr/local/cuda/include/cudnn*.h /usr/local/cuda/lib64/libcudnn*
+    ```
+    then you should compiler the dlib for python
+    you should cd the root path of dlib and 
+    run the command python setup.py install
+
+    then you will meet the error not found boost.
+    you can download the source code of boost and 
+    install it. run the command as follow.
+    --  *****************************************************************************************************
+    --  To compile Boost.Python yourself download boost from boost.org and then go into the boost root folder
+    --  and run these commands:
+    --     ./bootstrap.sh --with-libraries=python
+    --     ./b2
+    --     sudo ./b2 install
+    --  *****************************************************************************************************
+    note: if you have compiled the third lib used one version and compiled
+    your program used another verison. you should add the operation in your compiler command.
+
+    compiler and install the boost used the command above.
+    if you have failed to execute the command python setup.py install and meet the same error
+    that could not find the boost, you should modify the cmakelists file based on
+    the error information. if you have add the global environment for the boost include and lib path.
+    of course, the cmake will find the boost used find_package command based on the file .cmake 
+    what in the lib of boost. these files are generated when you command the ./b2 install.
+    because you have added the global environment, so you need not set any varible in 
+    cmakelists, if you have not done it, you should add the install path
+    in your cmakelists file. just like the command as follow.
+        vim /gl_data/soft/dlib-19.7/dlib/cmake_utils/add_python_module +100
+        and add the command in suitable position.
+            set(BOOST_ROOT "/gl_data/soft/boost_1_70_0/install")
+        and if your boost-python is python38, you should define the correct name.
+            FIND_PACKAGE(Boost 1.41.0 COMPONENTS python38)
+    only done these content, you will success to compiled.
+
+    then if you failed to import dlib in python, it is generally because of
+    the library that python can not find, you should update the link library variabel.
+    export LD_LIBRARY_PATH=/path/to/library:$LD_LIBRARY_PATH
+    sudo ldconfig
+
+    then, you can install the python successful.
+    if you can successful install the dlib used pip install --no-cache-dir dlib or conda install dlib.
+    you are lucky.
+
+    then if you failed to git clone the face_recognition_models.
+    you can use the command:
+        git clone git@github.com:ageitgey/face_recognition_models.git /tmp/pip-req-build-bf_15opc
+    it is the ssh connection, because the http is generally disconnected. but you should 
+    set the ssh connection configuration in your machine.
+使用cmkae编译项目的时候要注意：
+    1、编译阶段：头文件路径、库文件路径要定义
+    2、运行阶段：如果是动态库需要设置动态库的链接路径
+    3、以上路径如果都在全局变量中，则不需要再cmakelist文件中定义
+    4、如果头文件不在全局变量中，除了在cmakelist中定义编译器的头文件路径
+    还需要再vscode编辑器中配置对应的头文件路径
+    5、注意区分编译阶段和运行阶段
+    6、在cmakelists中的所有配置只会影响编译阶段，也就是说如果运行阶段报错
+    找不到动态链接库，则需要配置对应的环境变量
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/boost/lib
+    linux中的动态链接库环境变量是LD_LIBRARY_PATH
+
+vscode中配置maven很简单，在settings.json文件中配置mvn可执行文件的地址和jdk的地址，然后
+在maven的默认配置文件setting.xml中配置本地仓库地址和镜像地址即可。
+
+maven命令行工具
+    mvn clean install 清空本地仓库并且重新下载
+    mvn dependency:resolve 仅下载依赖
+如果远程仓库没有对应的jar包可以直接去对应的官网下载，然后使用mvn install将该jar包安装到本地仓库
+然后就可以直接在pom文件中添加对应的依赖了。
+mvn install:install-file -Dfile=/gl_data/zjh/weiyutao/spring-boot-starter-websocket-2.2.6.RELEASE.jar 
+    -DgroupId=org.springframework.boot 
+    -DartifactId=spring-boot-starter-websocket 
+    -Dversion=2.2.6.RELEASE 
+    -Dpackaging=jar
+
+
+springMVC: 
+    前端FormData传输，后端@ModelAttribute接收实体类
+    前端json串{}传输实体类内容，后端@RequestBody接收实体类
+    前端FormData传递字段files到multifile[]，后端@RequestParam("files)接收
+    前段FormData传递字段files和实例类字段，后端使用@ModelAttribute接收实力，使用@RequestParam("files)接收多个文件
+
+前端中使用this要注意，如果嵌套this的话容易出现undefined问题
+手动隐藏sidebar，可以修改这个文件
+/gl_data/zjh/weiyutao/weiyutao_web/govern_vue/src/layout/components/Sidebar/index.vue
+
+
+if you have failed to compiler your maven program that reason is
+Maven: Failed to read artifact descriptor because of the host name ***** can not be recognised.
+so you can change your host mapping in your machine what is located at /etc/hosts
+then, you can connect to the host.
+
+enter the terminal and execute the command as follow:
+    mysqldump -u root pd_ai_prod > pd_ai_prod.sql    导出数据库的所有表结构
+    mysqldump -u root nacos > nacos.sql
+enter the mysql server and create database pd_ai_prod
+enter the terminal and execute the command as follow:
+    mysql -u root -p pd_ai_prod < pd_ai_structure.sql
+
+
+product environment:
+    change the bootstrap.yaml file in pd_ai_server.
+    spring:
+        main:
+            allow-bean-definition-overriding: true
+        application:
+            # name: @project.artifactId@
+            name: pd-ai-server-prod
+        profiles:
+            # active: @pom.profile.name@
+            active: prod
+    /gl_data/zjh/weiyutao/weiyutao_web/medical_ai/pd-apps/pd-ai/pd-ai-server/src/main/resources/bootstrap.yml
+    pd-ai-server-prod, this is the configure file in nacos.
+    the test configure file is pd-ai-server.
+
+    and notice, you should add the configure file pd-ai-server in nacos.
+    then, you can run the run_web.sh scripts file.
+
+    node+vue, npm run build:prod and copy the build file to the specific path just like:
+        /www/wwwroot/www.test.com
+        the specific project path: you should create them first.
+            /www/wwwroot/www.test.com/src/assets/face_database/upload_images
+            /www/wwwroot/www.test.com/src/assets/face_database/known_faces
+            /www/wwwroot/www.test.com/src/assets/label_management
+    at last, modify the server name in gateway configure file in nacos.
+
+so, if you want to change the environment from develop to product, you just need to
+change the gateway configure file in nacos, and change the pom file, controller ip_port_address in java.
+and run_web.sh if you have not modified your node+vue, if you changed them, you should npm run build:prod
+and mv the build file to the specific path.
+
+
+简化后的生产环境部署
+    首先将java和nacos中的配置文件修改到生产环境
+    然后直接执行run_web.sh脚本即可打包前端到指定位置并且重新编译jar包
+
+简化后的测试环境部署
+    首先将java和nacos中的配置文件修改到测试环境
+    然后run_web.sh重新编译运行jar包
+    然后直接执行makeai.sh
+
+然后就这样在测试和生产环境之间切换
+
+注意nginx是限制访问服务器资源权限的
+可以使用nginx配置文件的第一行user来给定nginx访问服务器地址资源的权限
+比如 user root
+因为服务器的资源访问都是有全限定的，root用户的权限较大一点，因此如果希望
+nginx可以访问到任何资源地址，就配置 user root, nginx -s reload
+然后注意配置访问路径的规则
+server {
+    #charset koi8-r;
+
+    #access_log  logs/host.access.log  main;
+    listen 50201;
+    server_name _;
+    location /src/ {
+        // 这样配置http://ip:port/src/.../.../...之后的所有目录都可以访问
+        // src在/www/wwwroot/www.test.com/目录下
+        root /www/wwwroot/www.test.com/;
+        autoindex on;
+    }
+    location / {
+        root /www/wwwroot/www.test.com;
+        index  index.html index.htm;
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+
+python中相对导入一般在模块中使用
+不能直接调用相对导入的脚本，可以将存在相对导入的模块文件导入到当前脚本中，然后执行当前脚本
+但是注意，在脚本文件中不要进行相对导入
+
+git推送两个本地仓库到同一个远程仓库不同的分支
+    cd project_path_1
+    git init
+    git remote add remote_url
+    git brach name1
+    git add .
+    git commit -m "commit at"
+    git push origin name1
+
+    cd project_path_2
+    git init
+    git remote add remote_url
+    git brach name2
+    git checkout name2
+    git add .
+    git commit -m "commit at ..."
+    git push origin name2
+
+
+compile and install gcc-9.2
+    wget https://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.gz
+    tar zxvf gcc-9.2.0.tar.gz
+    cd gcc-9.2.0
+    mkdir build
+    ./contrib/download_prerequisites
+    cd build
+    ../configure --disable-multilib --enable-languages=c,c++
+    make -j 8
+    make install
+
+if you have failed to check the requirements environment
+    just like you have failed execute the command ./contrib/download_prerequisities
+    you should execute these command as follow:
+        yum install centos-release-scl -y
+        yum clean all
+        yum install devtoolset-9-* -y
+        scl enable devtoolset-9 bash
+    and then you can run the command ./configure
+    
+    if you have filed execute the command make -j8.
+    just like the error as follow:
+        ../../gcc-aarch64-sve-acle-branch/gcc/hwint.h:62:5: error: #error "Unable to find a suitable type for HOST_WIDE_INT"
+        #error "Unable to find a suitable type for HOST_WIDE_INT"
+    you can add the export as follow in the terminal:
+        export CPLUS_INCLUDE_PATH=
+        so it will empty the cplus include path.
+    and if you have failed with the error as follow:
+        just like involved contain the current path string, you should export the command what search it in website.
+
+
+
+compiler and install tesseract.
+notice, you should use the same method to generate the makefile file.
+just like you can use ./configure or cmake these two methods to generate
+the makefile file. you should use one method.
+
+the dependency:
+    1 the gcc compiler what support c++17
+        if you have install the correspond gcc version, the error occoured again as follow:
+        configure: error: Your compiler does not have the necessary C++17 support! Cannot proceed.
+        you should add the option in your command line.
+        ./configure --prefix=/usr/local/tesseract CXXFLAGS="-std=c++17"
+    2 configure: error: Leptonica 1.74 or higher is required. Try to install libleptonica-dev package.
+        you should install the soft leptonica 1.74 or higher.
+        download the git source and used cmake to compiler the program.
+        ./configure ./configure --prefix=/usr/local/leptonica CFLAGS="-fPIC" LDFLAGS=-pthread
+
+        致命错误：webp/encode.h：没有那个文件或目录 or 错误：未知的类型名‘WebPAnimEncoder’ WebPAnimEncoder *enc;
+        /usr/local/leptonica/lib/libleptonica.so: undefined reference to `SharpYuvGetConversionMatrix'
+        it means the webp not install or the version is not correct.
+        so you should install the libwebp or update the version.
+        donwload the git source libwebp and compiler it used cmake.
+        ./configure --prefix=/usr/local             
+                    --enable-libwebpmux             
+                    --enable-libwebpdemux             
+                    --enable-libwebpdecoder             
+                    --enable-libwebpextras             
+                    --enable-swap-16bit-csp             
+                    --disable-static
+        make -j8 && make install
+        if you have specificed the environment variable path as the install path just like
+        /usr/local, you need not export the install path in /etc/profile. or you need to
+        add the path in it. just like the code as follow:
+            notice, you should specific the include path and library path if you have compiled 
+            these two program used cmake and specific the install path to /usr/local/libwebp
+            you should export the include and lib path for the c, cpp and LD_LIBRARY_PATH 
+            environment variable.
+            add these export code in configure file just like /etc/profile
+                export LD_LIBRARY_PATH="/usr/local/libwebp/lib64:$LD_LIBRARY_PATH"
+                export C_INCLUDE_PATH="/usr/local/libwebp/include:$C_INCLUDE_PATH"
+                export CPLUS_INCLUDE_PATH="/usr/local/libwebp/include:$CPLUS_INCLUDE_PATH"
+
+            and notice, you should add the the correspond pkgconfig
+            path to the environment variable PKG_CONFIG_PATH
+                export PKG_CONFIG_PATH="/usr/local/leptonica/lib/pkgconfig"
+                export PKG_CONFIG_PATH="/usr/local/libwebp/lib64/pkgconfig:$PKG_CONFIG_PATH"
+            and you should ensure the directory /usr/local/libwebp/lib64/pkgconfi has the 
+            correspond .pc file.
+
+compiler and install:
+    if you have done above operation, you should configure successful and you should
+    go on to make tesseract.
+
+    if you meet the error as follow:
+        can not be used when making a shared object; recompile with -fPIC
+        /usr/bin/ld: /usr/local/leptonica/lib/libleptonica.a(fmorphgenlow.1.c.o): relocation R_X86_64_32S against `.rodata' can not be used when making a shared object; recompile with -fPIC
+        /usr/bin/ld: final link failed: Nonrepresentable section on output
+        collect2: error: ld returned 1 exit status
+    you should recompiler the dependency library leptonica used the flag CFLAGS="-fPIC"
+
+    ./configure --prefix=/usr/local/tesseract 
+    make -j8 && make install && ldconfig
+
+    and then if you want to compiler other soft that dependeny involved tesseract, 
+    and if you used cmake to generate the makefile file, you can add the library and
+    include path in cmakelists.txt file, and if you generated the makefile file used
+    ./configure, you should export the install path in environment variable.
+    because we have installed the tesseract in the /usr/local/tesseract, if you have install
+    it to /usr/local, then you need not do anything.
+
+
+notice, if you have compiled the different version that one program need, you can ln to handle it.
+just like one program need libwebp.so.4. but you have compiled the libwebp.so.7, then, you can command as follow
+to simple handler your program link problem:
+    ln /usr/local/lib/libwebp.so.7 /usr/local/lib/libwebp.so.4
+
+java中调用可执行文件是默认在当前开启服务的终端进行调用的
+如果在服务器上对可执行文件进行了更改，如果涉及到环境的更改，则需要重新启动当前服务
+否则在当前服务运行的终端环境不生效会影响可执行文件的执行，最典型的比如：
+对动态库进行了更改，那么对应的需要重新启动服务，否则动态库环境不生效。
+ 
+stable diffusion
+主模型和微调模型
+主模型指包含了文本编码器、神经网络、图像编码器的标准checkpoint
+是在官方模型的基础上通过全面微调得到的。之所以称之为checkpoint是因为主模型的训练会进行存档。
+
+扩展也即微调模型：Embedding、Lora Hypernetwork.
+
+主模型如何进行训练？
+1 主模型是在官方模型（也就是扩散模型）的基础上通过全面微调得到的
+2 如何微调？
+    2.1 为训练样本图添加N步噪声得到噪声图
+    2.2 为训练样本图添加N-1步噪声得到样本校准图
+    2.3 将噪声图和由提示词生成的文本向量输入到官方的扩散模型中，得到模型输出图
+    2.4 对比模型输出图和样本校准图，根据差异值微调扩散模型。直到其可以将关键词提示词和训练样本关联起来
+    2.5 迭代
+以上就是通过微调官方扩散模型得到的ckpt主模型
+
+
+扩展模型
+Embeddings 嵌入式向量    这种训练方法叫文本倒置Textual Inversion，特点是轻便
+原理是通过训练包含特定风格特征的信息映射在文本向量中，这样后续在输入对应关键词时，模型就会
+自动启用这部分文本向量来绘制。
+
+也可以称之为封装好的提示词文件，通过将特定目标的描述信息整合在Embeddings中，
+代表模型EasyNegative
+因此embedding并没有改变主模型的参数，因此很难改变图像的整体风格，因此它适合绘制特定风格的图像
+
+
+LoRA
+有没有一种模型既轻便又能存储图像信息呢？ Low-Rank Adaptation Models 的缩写，意思是低秩适应模型
+LoRA 原本并非用于 AI 绘画领域，它是微软的研究人员为了解决大语言模型微调而开发的一项技术
+有了 lora 就可以将训练参数插入到模型的神经网络中去，而不用全面微调。
+通过这样即插即用又不破坏原有模型的方法，可以极大的降低模型的训练参数，模型的训练效率也会被显著提升。
+相较于 Dreambooth 全面微调模型的方法，LoRA 的训练参数可以减少上千倍
+
+Hypernetwork原理是在扩散模型之外新建一个神经网络来调整模型参数，而这个神经网络也被称为超网络。
+
+VAE工作原理是将潜空间的图像信息还原为正常图片。
+作为 ckpt 模型的一部分，VAE 模型并不像前面几种模型用于控制图像内容，而是对主模型的图像修复。
+
+Cannot connect to host raw.githubusercontent.com:443 ssl:default
+append the content as follow to /etc/hosts
+199.232.28.133 raw.githubusercontent.com
+this ip address can be found in ip website.
+
+raise to_exc(exc) from exc
+httpcore.ConnectTimeout: _ssl.c:1114: The handshake operation timed out
+ this error means you should open the proxy server.
+
+openai.error.APIConnectionError: Error
+    this error means you have used proxy, but the urllib version is too high, you should
+    change your urllib version used pip.
+    pip install urllib3==1.25.11
+
+/gl_data/zjh/weiyutao/weiyutao_cv/ocr_cpp/opencv_test/src/main_test.cpp:7：
+对‘cv::imread(std::__cxx11::basic_string<char, std::char_traits<char>, 
+std::allocator<char> > const&, int)’未定义的引用
+    如果你已经配置好了但还是报错，那么可能是因为
+    你现在使用的编译器和安装第三方库比如opencv时候使用的编译器版本不一致
+    此时首先需要确保你现在使用的编译器的版本是更高的
+    然后在你的cmakelists中指定统一编译标准即可
+    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) 
+    但是需要注意的是，标准可以向下兼容，也就是说如果你使用11标准编译安装的
+    opencv，你当然可以使用17的标准去编译你的项目，但是如果你使用17的
+    标准编译安装的tesseract，那么你不能使用11的标准去编译它
+
+    但是有一个问题值得深思，如果你使用到了两个三方库，并且这两个三方库在编译安装的
+    时候使用的是不同的GLIB_ABI，此时如果你还想要通过
+    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) 来兼容这两个三方库的话
+    会产生歧义，此时需要重新编译，注意在编译的时候统一GLIB_ABI即可。一般
+    gcc5.1之后的编译器默认的是-D_GLIBCXX_USE_CXX11_ABI=1，而旧版的编译器默认使用
+    的是-D_GLIBCXX_USE_CXX11_ABI=0，如果需要更改，请在使用cmake编译的时候进行干预。
+
+
+
+cpp库的外部使用
+一些内容待定
+1、首先，编译安装的是自己的cpp库，该cpp库所依赖的三方库没有被安装
+2、安装只是将编译好的头文件，库文件放到一个指定的位置，当然最直接的是将他们放在系统环境
+    变量下，可以在该系统的任何路径和项目中找到他们
+3、如果涉及到动态库，还需要额外的设置动态库目录，以便于程序在运行阶段可以找到它
+4、如果是静态库，那么只要编译和链接通过即可正常执行程序
+5、cmakelist中的所有设置都是为了编译和链接阶段准备的，不包括程序执行阶段的配置
+6、如果你使用的是cmakelist编译你的项目，并且你在安装的时候没有配置安装三方库，并将三方库
+    的头文件和库文件设置到系统环境变量下，那么你在另一个项目中使用该项目编译的库文件的时候
+    会找不到三方库，此时最直接的解决办法是将三方库编译安装到系统环境变量下
+    安装三方库到系统环境变量的三步骤
+    第一，设置安装路径x并使用cmakelists编译安装三方库
+    第二，将安装路径添加到系统环境变量，注意可执行文件的环境变量和库文件的环境变量的区别
+    可执行文件的环境变量是PATH
+    库文件（头文件和库文件）的环境变量是CPLUS_INCLUDE_PATH 和LIBRARY_PATH
+    第三，如果三方库是动态库，则需要更新设置三方库到动态库的路径中
+7、cmakelist文件中需要使用install指令去定义make install代码
+
+
+常量指针不允许调用非常量成员
+
+/gl_data/zjh/weiyutao/weiyutao_cv/opencv_cpp/test/src/test.cpp:43：对‘cv::imread(std::string const&, int)’未定义的引用
+1、一般来说，未定义的引用错误原因是可以找到头文件，但是找不到库文件。此时需要再cmakelist中
+指定库文件路径，因为在编译源码的时候需要指定库文件路径
+2、但是还有一种情况，就是交叉编译的情况。也即使用的三方工具是使用D_GLIBCXX_USE_CXX11_ABI=0编译的
+而你现在使用的编译器是使用D_GLIBCXX_USE_CXX11_ABI=1编译的，因此找不到定义，加入如下代码即可
+# add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+因此在项目的编译过程中，这种情况需要规避
+
+
+总结：
+如果你的系统中存在多个版本的gcc，那么一定不要混合使用
+如果一定要使用高版本的gcc去编译使用低版本gcc编译的三方库，加上add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+这里说的版本界限是以D_GLIBCXX_USE_CXX11_ABI=0为界限
+
+hugingface model download in 192.168.10.210
+
+input the command as follow three step:
+# 1 open the http proxy.
+proxy_on 
+
+# 2 enter your down load directory.
+cd $your_download_path 
+
+# 3 find your download link url.
+# if you have failed to run the command as follow,
+# please Give it a few more tries.
+# you can search your model url from huggingface.co or hf-mirror.com
+wget $your_download_url
+
+少数动作反复
+声音驱动
+
+第一档次：对口型
+第二档次：口型和动作
+第三档次：口型和动作和对话
+
+text_audio:
+采集专人音频训练speaker
+
+
+
+
+
+paddle_ocr源码分析记录
+list split operation.
+[start_index:end_index:step_num]
+this operation will split the list from one to step_num, 
+A = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+A[2:10:2]
+split A to 
+A[2:10:2] = [2, 4, 6, 8, 10]
+
+A[0::1] = A
+
+1 这个是我的关于使用到transformer的所有项目集成项目
+2 utis前缀的是工具包，使用的时候需要在其他python文件中调用
+3 工具包中定义了：通用程序（比如文件操作等一些处理）、算法程序（比如文本到语音，算法程序中集成了部署函数（包含gradio（开启前后端服务，算法演示使用，可以直接开启外网前端访问演示）
+    和flask（开启后端服务，供前端同事在项目中调用）两种））
+4 编写规则：
+4.1 所有工具封装在类中
+4.2 _前缀开头的函数仅限于类内部调用
+4.3 模型的加载和推理分开部署（实现原理：类的初始化时候直接加载模型，调用flask或者gradio方法的时候仅调用模型的推理）
+4.4 一个工具类py文件仅编写一个class
+4.5 工具类中不提供主函数入口（测试可以，测试完删除主函数）
+4.6 编写方法注释，如下面案例所示：
+"""递归获取指定后缀的文件名称，两种模式，返回绝对路径和相对路径
+        Args:
+            directory (str): 文件路径
+            extension (_type_): 后缀
+            mode (int): 三种模式, 0: 一种是绝对路径
+                                 1:一种是相对路径
+                                 2: 一种是文件名称
+            remain_extension (int): 是否保留文件后缀:
+                                    0: 不保留后缀
+                                    1: 保留后缀
+        Returns:
+            list: 文件路径或者名称列表
+        """
+4.7 类的定义要通用和支持用户自定义：
+如下案例所示
+def __init__(self, root_path = None, model_path = None, results_path = None, device = None, model_name = None) -> None:
+        """_summary_
+        Args:
+            root_path (str, optional): the project root path. Defaults to None.
+            model_path (str, optional): the model path. Defaults to None. 
+                if the input is none, model_path will be $root_path/models
+            results_path (str, optional): the result dir path. Defaults to None.
+                if the input of result path is none, it will be $root_path/results
+            device (str, optional): cpu or cuda. Defaults to None.
+                if the device input is none, it will be real device, else is the input value.
+            model_name (str, optional): the model_name what you want use in the program,
+                it must be exists in self.model_path.
+        """
+4.8 在当前包中获取调用文件所在的目录
+    os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
+4.9 在类中定义flask route
+    flask函数不能传递任何参数，因此在非静态类中不能定义flask route方法
+    解决办法：为flask方法单独建立所属类
+    1 因为flask中调用了算法类的方法，因此需要再flask应用类中导入该算法类
+    2 但是flask应用类只能定义为静态方法，因此导入算法类需要使用静态方法导入
+    3 因为python中没有静态属性，因此可以专门构建静态方法去定义该静态属性（算法类）
+    4 那么这样定义的话再实际使用的时候需要专门定义静态的run方法在flask应用类中
+    5 因此，首先需要静态的传递算法类给该flask应用类，然后再调用静态方法run开启后端服务
+        @staticmethod
+        def set_audio_text_instance(audio_text_instance):
+            Flask_Static.audio_text_instance = audio_text_instance
+        Flask_Static.set_audio_text_instance(audio_text_instancement)
+            Flask_Static.run("0.0.0.0", "7877")
+    6 还有一种办法就是设置全局的属性算法类的实力，但是这样有一个缺陷，就是在初始化flask应用类
+    的时候不能动态的设置算法类的属性，只能使用固定的或者默认的属性
+    class Flask_Static():
+        app = Flask(__name__)
+        audio_text_instance = AudioText()
+    7 我们可以兼容这两种办法
+        但是需要做兼容处理，因为这两种方法会在不同的文件中初始化该算法类
+        如果使用第一种办法，会在主函数中初始化该算法类，因此我们要获取的是调用该主函数的文件的目录作为根目录
+        如果使用第二种办法，会在flask应用类的文件中初始化该算法类，此时我们需要获取的是上一既目录
+        当然，这种情况我们在初始化算法类实例的时候需要手动获取项目的根目录并导入
+        比如，我们可以在flask应用类中根据实际情况获取到项目的根目录，然后在初始化算法实例的时候
+        使用该根目录，因此这就要求我们首先固定工具类目录相对于项目根目录的结构
+    8 下载项目了就不要安装对应的包了
+
+
+
+
+2024_3_5视觉系统项目
+1 前端文件页面增加文件名称检索功能
+2 下载当前项目资源
+3 自动标注异常问题
+
+4 用户提问：
+同名文件更新：
+    待上传文件夹存在已上传文件，忽略已上传文件，仅上传新文件
+    cpp工具，更改当前文件夹下所有文件名称，以时间戳命名
+    riff: 标准工具不识别特殊格式
+    以上两种提供同一工具
+
+    类别的删除和修改
+    删除未标注图像
+    
+
+
+5 paddlespeech pip 环境
+    pip install PaddleSpeech==1.4.1 && 
+    pip install PaddlePaddle==2.4.2 or gpu version as follow
+    python -m pip install paddlepaddle-gpu==2.4.2.post112 -f https://www.paddlepaddle.org.cn/whl/linux/mkl/avx/stable.html && 
+    pip install numpy==1.23.4 && 
+    pip install opencc==1.1.6 &&
+    pip install paddlenlp==2.5.2
+    pip install scipy==1.12.0 
+
+    paddlespeech调用change_speed函数修改速度
+    但是需要安装soxbindings
+    pip install soxbindings
+    一般会报错找不到sox.h的头文件问题，此时下载对应的sox工具
+    sudo yum install sox-devel
+    rpm -ql sox-devel
+    ln -s /usr/include/sox/sox.h /usr/include/sox.h
+    但是又出现了新的错误，意思是某一个变量不在sox头文件中，怀疑是sox版本和soxbindings的版本不匹配的问题
+    现在卡到了这个问题上，我在尝试源码编译安装更新的sox版本，但是在configure阶段失败了
+
+
+
+  集成transformer环境
+  pip install transformers
+
+
+6 集成video-retalking
+  主要是dlib的问题，dlib9.17要求python3.8
+  而paddlespeech使用python3.8却安装不上，3.9可以安装上
+  解决办法，dlib-9.17下的setup.py使用的isAlive替换掉即可
+  python3.8是isAlive而python3.9是is_alive
+
+7 keypoints.append(current_kp[None])
+TypeError: list indices must be integers or slices, not NoneType
+你可以使用current_kp[:] 切片操作来达到相同的效果
+
+8 集成tts
+    tts requires torch >= 2.1 but general_environment requires torch 1.13.1+cu116
+    向下兼容原则测试
+    pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+
+    pip install torch==1.12.0+cu116 torchvision==0.13.0+cu116 torchaudio==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu116
+
+
+speakers
+ > Available speaker ids: Set --speaker_idx flag to one of these values to use the multi-speaker model.
+dict_keys(['Claribel Dervla', 'Daisy Studious', 'Gracie Wise', 'Tammie Ema', 
+    'Alison Dietlinde', 'Ana Florence', 'Annmarie Nele', 'Asya Anara', 'Brenda Stern', 
+    'Gitta Nikolina', 'Henriette Usha', 'Sofia Hellen', 'Tammy Grit', 'Tanja Adelina', 
+    'Vjollca Johnnie', 'Andrew Chipper', 'Badr Odhiambo', 'Dionisio Schuyler', 'Royston Min', 
+    'Viktor Eka', 'Abrahan Mack', 'Adde Michal', 'Baldur Sanjin', 'Craig Gutsy', 'Damien Black', 
+    'Gilberto Mathias', 'Ilkin Urbano', 'Kazuhiko Atallah', 'Ludvig Milivoj', 'Suad Qasim', 
+    'Torcull Diarmuid', 'Viktor Menelaos', 'Zacharie Aimilios', 'Nova Hogarth', 'Maja Ruoho', 
+    'Uta Obando', 'Lidiya Szekeres', 'Chandra MacFarland', 'Szofi Granger', 'Camilla Holmström', 
+    'Lilya Stainthorpe', 'Zofija Kendrick', 'Narelle Moon', 'Barbora MacLean', 'Alexandra Hisakawa',
+    'Alma María', 'Rosemary Okafor', 'Ige Behringer', 'Filip Traverse', 'Damjan Chapman', 
+    'Wulf Carlevaro', 'Aaron Dreschner', 'Kumar Dahl', 'Eugenio Mataracı', 'Ferran Simen', 
+    'Xavier Hayasaka', 'Luis Moray', 'Marcos Rudaski'])
+
+
+8 cuda found but test failed
+
+
+git init
+1 windows更改文件名称脚本 scripts  修改   --> cpp
+2 前端问题，左右按键滑动图像   点击空白关闭图像  -->  vue
+3 训练集和验证集分配比例不合理   总数据1208张图 11个类别，验证集仅7张图 3个类别 --> 算法
+4 有明显区别的类别分类不准确  --> 算法  【问题已修改完毕，select_json算法错误】
+5 更改类别名称直接更改标注数据 --> 算法 + vue
+6 删除类别名称直接删除标注数据 --> 算法 + vue
+7 推理请选择显示问题，实际选择路径正确，但是请选择选项框处显示不实时改变  --> vue
+8 推理模块中选择权重后显示对应的训练时间和训练参数以及训练指标   --> 算法 + vue
+9 推理一次以后如果想要继续推理，则必须更换权重选择才能够点击开始检测，即正在检测状态不会同步更新 vue
+10 切换工程后推理模块选择权重文件不会实时更新 --> vue 
+11 git远程仓库本地化后到本地仓库子目录后再远程问题  --> 算法
+12 paddleocr版面还原纯文本问题，解决思路：在ppocr中加入版面还原 --> 算法
+13 目标检测进行推理前还需要去标签库里面检测是否存在
+14 推理图像生成测试报告
+
+shadowsocks
+1 download the dependency
+    sudo yum -y install epel-release
+    sudo yum -y install python-pip
+    sudo pip2 install https://github.com/shadowsocks/shadowsocks/archive/master.zip -U
+2 download the shadowsocks and set the user and password
+    sudo mkdir /etc/shadowsocks
+    sudo vi /etc/shadowsocks/shadowsocks.json 
+    append the code to the .json file as follow.
+    {
+        "server": "c67s2.jamjams3.net",
+        "server_port": 13726,
+        "local_address": "127.0.0.1",
+        "local_port": 1080,
+        "password": "Uc7eagK53Dx49WLn",
+        "timeout": 500,
+        "method": "aes-256-gcm",
+        "fast_open": false,
+        "workers": 1
+    }  
+3 create the script starter.
+    sudo vi /etc/systemd/system/shadowsocks.service
+    [Unit]
+    Description=Shadowsocks
+    [Service]
+    TimeoutStartSec=0
+    ExecStart=/usr/bin/sslocal -c /etc/shadowsocks/shadowsocks.json
+    [Install]
+    WantedBy=multi-user.target
+
+4 start the shadowsocks
+    systemctl enable shadowsocks.service
+    systemctl start shadowsocks.service
+    systemctl status shadowsocks.service
+
+5 verify the status of the shadowsocks
+    curl --socks5 127.0.0.1:1080 http://httpbin.org/ip
+
+6 install the privoxy
+    sudo yum -y install privoxy
+    systemctl enable privoxy
+    systemctl start privoxy
+    systemctl status privoxy
+
+7 set the config file 
+    vim /etc/privoxy/config
+    add the code as follow.
+    listen-address 127.0.0.1:8118
+    forward-socks5t / 127.0.0.1:1080 .
+
+8 set the load environment proxy.
+    export http_proxy=http://127.0.0.1:8118
+    export https_proxy=http://127.0.0.1:8118
+
+9 then, you can use the shadowsocks to accept the http request.
+
+10 curl https://www.google.com you can use it to verify if it is success.
+
+ImportError: libcudart.so.10.2: cannot open shared object file: No such file or directory
+    conda install cudatoolkit=10.2
+
+
+audio2photoreal训练自己的虚拟人物
+1 
+nohup python general_test_no_flask.py > output.log &
+ps -ef | grep python
+
+du -sh *查看当前路径下的磁盘占用情况
+conda env remove --name xxx
+
+图像生成
+
+传统的图像生成属于计算机图形学的范畴
+
+基于深度学习的图像生成
+auto encoder 自编码器
+AE
+图像(8bit数据) --> 编码(确定的数据)  -(确定的数据)-> 解码(8bit数据) --> 图像(8bit数据)
+
+以上图像进行编码解码的过程就是一个自编码
+其中编码和解码两个阶段使用到了两个深度学习网络
+图像编码的过程本质上就是图像压缩
+以上自编码过程其实就是一个自监督学习的过程，训练数据不需要做任何监督标注就可以学习到对应的参数
+这个就是AE，但是还有一个问题就是：我们希望大到的图像生成效果是可以随机生成用户的图像，而不是生成
+训练集中出现的图像，这个可以理解为AE模型的泛化能力很差，也即AE模型有很大的过拟合问题。
+这和传统的图像识别模型相似，我们使用了预标注的数据集进行训练，当然模型的泛化能力将会仅限于标注的识别类型
+当然这个在图像识别模型中可以允许，因为我们只需要识别我们预定义的标注类别即可。
+然而在图像生成中，这个缺陷不能忽略，因为我们希望生成的图像是随机的，也即用户可以声成任意类型的图像，因此
+提升提升模型的泛化能力是首要问题。
+
+因此解决AE模型的过拟合问题是首要任务
+VAE：变分自编码器，改变AE模型的输出，AE模型的输出是一个确定的数据，VAE是一个正太分布中的随机数。
+也即VAE的编码输出是一个均值和方差，然后解码输入是从这个均值和方差表达的正太分布里随机采样一个数据。
+VAE
+图像(8bit数据) --> 编码(均值和方差固定的正太分布) -(随机挑选的数据，符合编码生成的均值和方法的正态分布)-> 解码(8bit数据) --> 图像(8bit数据)
+那么VAE的问题就是如何让编码器生成的数据尽可能的接近标准正太分布。
+
+VAE虽然改进了AE模型的过拟合问题，但是仍然无法提升生成图像的质量
+去噪扩散概率模型Denoising Diffusion Probabilistic Model, DDPM 对VAE方法的改进
+在该模型中，图像的编码操作为加噪操作，而图像的解码操作为去噪操作。
+
+Vector Quantised-Variational AutoEncoder (VQVAE) 就是一个能把图像编码成离散向量的AE（虽然作者在取名时用了VAE）
+
+Stable Diffusion
+结合以上两种改进思想：Denoising Diffusion Probabilistic Model, DDPM 和 Vector Quantised-Variational AutoEncoder (VQVAE) 
+High-Resolution Image Synthesis with Latent Diffusion Models, 隐扩散模型（latent diffusion model, LDM）
+LDM其实就是在VQGAN方法的基础上，把图像生成模型从Transformer换成了DDPM
+
+
+const修饰的实例不能调用非const成员函数
+
+查看显卡型号
+lspci -v | grep VGA 
+
+cmake compile the opencv with cuda
+
+
+cmake \
+-D CMAKE_BUILD_TYPE=RELEASE \
+-D CMAKE_INSTALL_PREFIX=/usr/local/opencv_gcc9_cuda \
+-D CMAKE_PREFIX_PATH=/usr/local/opencv_gcc_cuda \
+-D OPENCV_EXTRA_MODULES_PATH=/work/soft/opencv/opencv_contrib-4.7.0/modules \
+-D WITH_CUDA=ON \
+-D CUDA_ARCH_BIN=8.6 \
+-D ARCH=sm_86 \
+-D gencode=arch=compute_86,code=sm_86 \
+-D ENABLE_FAST_MATH=ON  \
+-D CUDA_FAST_MATH=ON  \
+-D WITH_CUBLAS=ON  \
+-D WITH_CUFFT=ON  \
+-D WITH_NVCUVID=ON  \
+-D WITH_OPENMP=ON  \
+-D BUILD_EXAMPLES=ON  \
+-D BUILD_DOCS=OFF  \
+-D BUILD_PERF_TESTS=OFF  \
+-D BUILD_TESTS=OFF  \
+-D WITH_TBB=ON  \
+-D WITH_IPP=ON  \
+-D WITH_NVCUVID=ON  \
+-D WITH_CSTRIPES=ON  \
+-D WITH_OPENCL=ON  \
+-D WITH_FFMPEG=ON  \
+-D CMAKE_CXX_FLAGS="-Ofast"  \
+-D BUILD_opencv_python2=OFF \
+-D BUILD_opencv_python3=ON \
+..
+
+# -D BUILD_opencv_python3=ON 开启一些特殊功能，比如视频编码方式
+
+注意在对视频文件进行处理的时候，因为我们一般会在处理每一帧图像之前定义好输出视频的参数
+因此此时需要特别注意对每一帧的图像处理是否会改变原始视频的分辨率，如果改变，请在定义
+输出视频参数的时候考虑到，否则保存的视频文件将会出现错误无法打开。而图像的保存不涉及到这个问题。
+
+pytorch3d和torch版本对应
+    CUDA Toolkit 11.3 + pytorch 1.11.0 + Visual Studio 2019 + Pytorch3d 0.6.2 + Python 3.10
+
+ffmpeg-static下载链接
+https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+
+174 青春活力女
+173 慢节奏女
+172 慢节奏磁性女
+171 慢节奏磁性男
+169 高冷女
+168 慢节奏懒散女
+167 暖男
+166 慢节奏青春女
+165 快节奏知性女
+164 慢节奏高冷女
+179 播音女
+182 快速播音女
+ImportError: cannot import name 'builder' from 'google.protobuf.internal'.
+pip install --upgrade protobuf
+
+模型的加载最好放在专门的工具包里，通用的工具包里面最好不要添加模型的加载
+因为我们如果要在脚本中导入对应的工具包，如果通用的工具包中涉及到专业模型的下载
+会占用cpu和gpu资源
+
+musev环境配置问题
+    pip install diffusers==0.22.1
+
+    项目中如果依赖子模块，那么尽量不要在子模块的源码上修改，而是在自己的项目中导入该子模块，然后在此基础上进行修改
+    因为这样我们可以更方便的配置项目。
+
+du -sh *  分析当前目录下文件夹磁盘占用情况
+df -h    分析系统磁盘占用情况
+ls -R
+conda config --show-sources 查看conda配置文件路径
+conda的配置文件优先级顺序
+一般在当前用户下目录下
+~/.conda/condarc
+~/.condarc
+以上顺序是优先级
+默认的当前用户的环境安装路径是~/.conda
+我们可以在condarc中配置
+envs_dirs:
+  - /work/ai/weiyutao/envs
+就可以设置改路径为指定的安装路径，使用conda info查看
+或者使用如下指令查看，注意安装路径一定是有访问权限的，如果没有那会默认向第二顺位的路径进行安装
+所以并不是配置文件配置了什么就一定可以安装到指定的路径，如果没有访问权限则会忽略
+(base) [weiyutao@localhost ~]$ conda config --show-sources
+==> /home/weiyutao/.conda/.condarc <==
+envs_dirs:
+  - /work/ai/weiyutao/envs
+
+==> /home/weiyutao/.condarc <==
+envs_dirs:
+  - /work/soft/anaconda3/envs
+
+给当前用户配置单独的conda环境
+在当前用户目录下的~/.bashrc中修改conda的所有sh配置路径为指定conda的路径。这样就可以了，
+然后退出，使用conda init激活，conda就可以读取到配置文件了。
+使用当前用户安装完conda以后，会自动将conda的环境变量
+配置到当前用户的~/.bashrc文件中，此时需要重启或者source ~/.bashrc即可获取配置后的conda环境
+不需要做任何额外的环境配置
+比如weiyuao     用户
+vim ~/.bashrc
+或者 vim /home/weiyutao/.bashrc
+但是注意的是，我们还需要修改对应的下载路径，这样的话默认下载路径是指定录下下的和home路径下的，如果想要修改这个路径，就需要在home目录下的.condarc修改了。
+conda info可以查看当前用户的conda配置
+
+但是因为我们使用的是当前用户账号，因此它没有修改其他位置磁盘的权限，所以默认使用的是当前用户下的包保存路径，但是这个路径一般可使用磁盘大小很小，因此我们需要修改
+解决办法是修改~/.conda/condarc去修改环境安装顺位，并且使用sudo abs_conda create --name
+去安装conda环境到指定路径
+
+sudo chown weiyutao .paddlespeech改变文件用户名 要不虽然从别的用户下复制了文件到当前用户
+当前用户是没有办法修改的，使用sudo修改该文件的拥有权限为当前用户即可。
+
+
+
+
+
+
+使用pip导出当前环境下的依赖
+pip list --format=freeze >requirement.txt
+
+sudo visudo
+sudo: conda：找不到命令  如果报这个错误按照如下方式解决
+secure_path 后添加sudo后面执行命令的环境变量
+conda create会按照顺位路径进行环境的安装，如果anaconda安装在非当前用户可使用路径下
+当前用户是没有修改全局路径的权限的，因此会找下一个安装路径
+如果希望干预修改顺位，则只需要修改conda在当前用户下的配置文件即可：
+vim ~/.conda/.condarc  
+vim ~/.condarc
+在上面两个配置文件中添加如下内容指定安装路径
+envs_dirs:
+  - /work/soft/anaconda3/envs
+然后使用conda info查看是否生效
+df -h 查看系统磁盘内存占用情况
+
+
+virtual_human工程化问题
+1 Failed to build infomap
+    
+
+
+
+
+# 无网本地部署
+ifconfig not found
+    sudo yum install command-name
+ip address show
+sudo su root
+sudo useradd text_audio
+sudo passwd text_audio
+
+change the root user
+su -
+visudo
+find the root line and set 
+text_audio  ALL(ALL)    ALL
+cd ~
+
+centos配置本地镜像
+yum -y install yum-utils
+repotrack pcre
+generate pcre.tar.gz
+离线安装
+rpm -ivh --nodeps --force gcc-c++/*.rpm
+
+ubuntu
+开启ssh
+sudo passwd, 修改root密码
+su root
+apt-get install ssh
+sudo /etc/init.d/ssh start
+sudo vi /etc/ssh/sshd_config
+    change from PermitRootLogin without-password to PermitRootLogin yes
+service ssh restart
+
+
+then you can ssh connect
+sudo service nginx status
+
+sudo su 进入root用户，密码是root用户登录密码
+passwd user 修改用户sudo密码
+
+重新进入另一个用户以后需要输入conda init bash, 然后重新进入当前用户才能激活conda环境
+注意sudo后面的解释器一般都要使用绝对路径，要不会使用sudo默认的。
+sudo /gl_data/zjh/weiyutao/pre_local_install/miniconda3/envs/pps/bin/python scripts.py
+
+注意配置开机自启动服务的方法
+    可以分为root用户开机自启动服务和普通用户的开机自启动服务
+    比如我们分别配置nginx和语音合成服务的开机自启动
+    vim ~/.config/systemd/user/text_audio.service
+    add the content info the nginx config file.
+    [Unit]
+    Description=Text Audio Python Script
+    #Wants=network-online.target
+    #After=network-online.target
+
+    [Service]
+    Type=simple
+    ExecStart=/gl_data/zjh/weiyutao/pre_local_install/miniconda3/envs/text_audio/bin/python /gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/scripts_2024_4_25.py
+    StandardInput=file:/gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/logs/input_text_audio.log
+    StandardOutput=file:/gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/logs/output_text_audio.log
+    StandardError=file:/gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/logs/error_text_audio.log
+    [Install]
+    WantedBy=default.target
+
+    system --user enable text_audio
+    system --user status text_audio
+
+    如果报错：Failed to get D-Bus connection: 拒绝连接
+    mv /usr/bin/systemctl /usr/bin/systemctl.old
+    curl https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl.py > /usr/bin/systemctl
+    chmod +x /usr/bin/systemctl
+    即可解决该问题
+
+    注意每次修改完service后缀的文件后要及时更新
+    systemctl --user daemon-reload
+
+    systemctl --user restart text_audio
+    systemctl --user stop text_audio
+    systemctl --user enable text_audio # 开机自启动
+    systemctl --user status text_audio # 服务运行状态
+    (text_audio) [weiyutao@bogon logs]$ systemctl --user status text_audio
+    text_audio.service - Text Audio Python Script
+        Loaded: loaded (/home/weiyutao/.config/systemd/user/text_audio.service, enabled)
+        Active: active (running)
+
+    注意系统级system服务和用户级的区别，以下是nginx用户级的WantedBy=default.target
+    系统级的使用WantedBy=multi-user.target
+    [Unit]
+    Description=Nginx Auto Start Service
+    #Wants=network-online.target
+    #After=network-online.target
+
+    [Service]
+    Type=forking
+    ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/nginx.conf -p /gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio
+    ExecStart=/usr/local/nginx/sbin/nginx -c /gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio/nginx.conf -p /gl_data/zjh/weiyutao/pre_local_install/shenyang_text_audio
+    ExecReload=/usr/local/nginx/sbin/nginx -s reload
+    ExecStop=/usr/local/nginx/sbin/nginx -s stop
+    PrivateTmp=true
+
+    [Install]
+    WantedBy=default.target
+
+    注意修改完service后缀的文件以后需要及时更新systemctl --user daemon-reload，然后直接运行即可
+    systemctl --user enable nginx # 更改服务模式为开机自启动
+    systemctl --user restart nginx # 重新启动nginx服务
+    systemctl --user status nginx # 查看nginx服务的运行状态
+        (text_audio) [weiyutao@bogon logs]$ systemctl --user status nginx
+        nginx.service - Nginx Auto Start Service
+            Loaded: loaded (/home/weiyutao/.config/systemd/user/nginx.service, enabled)
+            Active: active (running)
+
+
+常规配置
+groups root查看root用户所在组别信息
+cat /etc/group 查看系统组别信息  weiyutao:x:1004:    第一个字段是组名，第二个字段是密码占位符，第三个字段是当前组的id号
+cat /etc/passwd 查看系统用户信息 weiyutao:x:1004:1004::/home/weiyutao:/bin/bash
+sudo userdel -r wyt 删除系统用户及其主目录
+
+
+sudo chown -R weiyutao:weiyutao weiyutao/
+更改weiyutao/ 该文件夹及其子文件的所有者和所属组为  weiyutao:weiyutao
+当前用户的全局配置文件为~/.bashrc, /home/weiyutao/.bashrc
+root用户的全局配置文件就很多，/root/.bashrc, /etc/profile
+如果我们之前使用root用户或者其他普通用户创建了paddlespeech项目的公共文件/tmp/jieba.cache
+那么我们在使用其他普通用户在操作的时候没有权限修改该文件，只需要更改该文件的所有者即可
+sudo chown weiyutao:weiyutao /tmp/jieba.cache
+
+chmod o-wx /path/to/weiyutao 去掉其他用户的写入和执行权限
+
+
+
+系统级别和用户级别的service配置文件路径
+系统级别的放在/etc/systemd/system这个路径下
+用户级别的服务文件放在/home/weiyutao/.config/systemd/user这个路径下
+redis配置文件
+    [Unit]
+    Description=Redis
+    After=network.target
+
+    [Service]
+    Type=forking
+    ExecStart=/gl_data/soft/redis-2.4.5/src/redis-server /gl_data/soft/redis-2.4.5/redis.conf
+    ExecReload=/gl_data/soft/redis-2.4.5/src/redis-server -s reload
+    ExecStop=/gl_data/soft/redis-2.4.5/src/redis-server -s stop
+    PrivateTmp=true
+
+    [Install]
+    WantedBy=multi-user.target
+
+nacos配置文件
+    [Unit]
+    Description=Nacos Server
+    After=network.target
+
+    [Service]
+    Environment="JAVA_HOME=/gl_data/soft/jdk1.8.0_381"
+    Type=forking
+    ExecStart=/gl_data/soft/nacos/bin/startup.sh
+    ExecStop=/gl_data/soft/nacos/bin/shutdown.sh
+
+    [Install]
+    WantedBy=multi-user.target
+
+WantedBy=multi-user.target 一般是系统级别的启动服务，可以使用不同用户进行服务的调用
+但是需要注意的是访问启动服务的访问路径一定是当前用户所拥有权限的。否则将会启动失败
+比如这个访问路径：/gl_data/soft/redis-2.4.5/src/redis-server，普通用户一般是没有访问权限的，解决办法就是为普通用户设置访问权限
+mysql 启动服务
+
+
+centos ssh连接慢，待解决
+运行内存缓存过高，重启电脑或者清除缓存 
+reboot或者物理按键重启 
+
+
+paddlespeech微调
+FileNotFoundError: [Errno 2] No such file or directory: '/home/app/Documents/MFA/19/train/mfcc/raw_mfcc.0.scp'
+    conda install -c anaconda openblas-devel
+    rm -rf montreal_forced_aligner/lib/thirdparty/bin/libopenblas.so.0
+    export export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/gl_data/zjh/weiyutao/pre_local_install/miniconda3/envs/text_audio/lib
+
+
+export PATH=/usr/local/bin:$PATH
+export C_INCLUDE_PATH=/new/gcc/include:$C_INCLUDE_PATH
+export LIBRARY_PATH=/new/gcc/lib:$LIBRARY_PATH
+
+
+/usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.26
+遇到这个问题，一般想清楚一件事，libstdc++.so.6是库文件，不同版本的库文件支持不同的GLIBCXX版本
+要分清楚运行库文件和库文件，磁盘上存在的库文件是客观存在的，而运行时调用到的库文件则是运行库文件，磁盘可以存在多个库文件
+而且存在的形式可以源文件和链接的形式存在，而运行时调用的库文件只能有一个。/usr/lib64/libstdc++.so.6就是运行时调用的库文件
+查找磁盘上所有的同名库文件 find / -name libm.so.6    
+查找对应的库文件支持的GLIBC版本，使用strings查询
+如果查找带高于version `GLIBCXX_3.4.26的版本，那么只需要更改软链接即可，否则下载对应版本的库文件。
+
+
+还有一个错误是下面这样的，注意这两个错误不一样，前者和gcc的版本有关系，后者和glibc的版本有关系
+glibc的版本查看
+(paddlespeech) [root@bogon tts3]# ldd --version
+ldd (GNU libc) 2.17
+Copyright (C) 2012 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+由 Roland McGrath 和 Ulrich Drepper 编写。
+
+可以查看对应的版本是2.17，而要求是2.23
+/lib64/libm.so.6: version `GLIBC_2.23'、
+
+
+这里注意/lib64/libm.so.6和/usr/lib64/libstdc++.so.6的区别，两者都是GUN
+但是前者是glibc也即c库，安装glibc的时候会带有libm.so库数学函数库，而后者是c++库，安装gcc的时候
+会附带安装，因此两者关联的项目不同，一个是c一个是c++，因此前者可以通过安装更高版本的glibc解决
+而后者可以通过安装更高版本的gcc解决。
+/usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.26 not found
+libstdc++.so.6这个库对应的GLIBCXX_3.4.26版本未找到，升级该库或者更新更高版本的软链接，升级该库就是升级更高版本的gcc
+
+/lib64/libm.so.6: version `GLIBC_2.23' not found
+/lib64/libm.so.6这个库对应的GLIBC_2.23版本未找到，升级该库或者更新更高版本的软链接，升级该库就是升级glibc
+
+两者都是GUN产品，查看对应的版本，升级
+(text_audio) [weiyutao@bogon tts3]$ ldd --version
+ldd (GNU libc) 2.17
+
+(text_audio) [weiyutao@bogon tts3]$ gcc --version
+gcc (GCC) 6.3.0
+
+注意升级的时候如果希望可以回退版本，不要直接安装在/usr目录下或者usr/lcoal目录下，一般直接安装在/usr/local/xxx目录下
+如果希望安装到conda虚拟环境中，那么直接指定--prefix安装路径为conda虚拟环境的根目录即可
+
+升级glibc需要两个升级：一个gcc升级，一个make升级，前者到9.2，后者到4
+
+注意/lib64/libm.so.6: version `GLIBC_2.23' not found
+这个错误的本质就是/lib64/libm.so.6是个软链接，指向的库文件版本低于2.23
+比如 /lib64/libm.so.6 -> libm-2.17.so
+2.17小于项目执行要求的版本2.23，因此需要重新链接一个更高版本
+因此首先更新glibc的版本到高于2.23，然后在安装的glic中找到对应的libm.so.2.30库文文件
+然后建立软链接即可
+sudo ln -fs /usr/local/glibc2.3/lib/libm-2.30.so /lib64/libm.so.6
+/lib64/libm.so.6 -> /usr/local/glibc2.3/lib/libm-2.30.so
+问题即可解决
+
+
+(paddlespeech) [root@bogon tts3]# find / -name libm.so.6
+find: ‘/proc/24601’: 没有那个文件或目录
+/usr/lib/i686/nosegneg/libm.so.6
+/usr/lib/libm.so.6
+/usr/lib64/libm.so.6
+/gl_data/soft/miniconda3/pkgs/sysroot_linux-64-2.12-he073ed8_17/x86_64-conda-linux-gnu/sysroot/lib64/libm.so.6
+/gl_data/soft/miniconda3/pkgs/sysroot_linux-64-2.17-h57e8cba_10/x86_64-conda-linux-gnu/sysroot/lib64/libm.so.6
+/gl_data/soft/miniconda3/envs/paddlespeech/x86_64-conda-linux-gnu/sysroot/lib64/libm.so.6
+
+(paddlespeech) [root@bogon tts3]# ll /usr/lib/libm.so.6
+lrwxrwxrwx. 1 root root 12 9月  27 2023 /usr/lib/libm.so.6 -> libm-2.17.so
+
+(paddlespeech) [root@bogon tts3]# strings /usr/lib64/libm-2.17.so | grep GLIB
+GLIBC_2.2.5
+GLIBC_2.4
+GLIBC_2.15
+GLIBC_PRIVATE
+GLIBC_2.15
+最高版本是2.4，但是不支持version `GLIBC_2.23'，因此需要更换glibm版本
+
+一般情况下不是因为GLIBCXX_3.4版本不对，是因为库文件路径没有设置正确，/usr/lib64/libstdc++.so.6是可执行文件
+运行时候的动态库，它是一个软链接，一般会链接到对应版本的gcc的lib库，可以查看它对应的lib文件链接
+比如
+(base) [root@bogon ~]# ll /usr/lib64/libstdc++.so.6
+lrwxrwxrwx. 1 root root 19 9月  14 2023 /usr/lib64/libstdc++.so.6 -> libstdc++.so.6.0.19
+可以发现他的软链接是libstdc++.so.6.0.19。他是gcc编译安装的时候生成的关于c++的库文件，一般是安装的gcc版本越高支持
+的GLIBCXX_3版本越高。可以将该软链接链接到高版本的gcc的库路径上，比如两种方案，一种是改变库文件路径
+比如之前是/usr/lib64 从这个库里面找libstdc++.so.6，现在改为优先从/usr/local/gcc9.2/lib64中找对应版本的库文件即可
+或者重新建立/usr/lib64/libstdc++.so.6文件的软链接。
+但是注意一个问题，如果使用的是普通用户运行脚本或者可执行文件，对应的库路径一般普通用户没有访问权限，此时就会使用默认的/lib64库文件路径作为优先路径
+因此注意这个点。这个是非root用户才会考虑到的问题
+
+那么如何判断某一个库文件是否支持对应的glibc版本呢？使用strings命令查看，strings可以查看二进制文件中的内容
+strings /usr/lib64/libstdc++.so.6 | grep GLIBC
+
+可以通过重新设置对应的库文件路径解决这个问题，比如
+(base) [root@bogon ~]# ls /usr/local/gcc9.2/lib64/libstdc++*
+/usr/local/gcc9.2/lib64/libstdc++.a     /usr/local/gcc9.2/lib64/libstdc++.so
+/usr/local/gcc9.2/lib64/libstdc++fs.a   /usr/local/gcc9.2/lib64/libstdc++.so.6
+/usr/local/gcc9.2/lib64/libstdc++fs.la  /usr/local/gcc9.2/lib64/libstdc++.so.6.0.27
+/usr/local/gcc9.2/lib64/libstdc++.la    /usr/local/gcc9.2/lib64/libstdc++.so.6.0.27-gdb.py
+/usr/local/gcc9.2/lib64/将该路径设置到LD_LIBRARY_PATH中，全局设置或者局部设置都可以
+    export PATH=/usr/local/gcc9.2/bin:$PATH
+    export C_INCLUDE_PATH=/usr/local/gcc9.2/include:$C_INCLUDE_PATH
+    export LD_LIBRARY_PATH=/usr/local/gcc9.2/lib64:$LD_LIBRARY_PATH
+
+
+实在不行重新
+strings /lib64/libc.so.6 |grep GLIBC_查看是否有GLIBCXX_3.4.26版本
+发现没有可以安装
+安装glibc
+安装glibc前需要升级make版本
+export PATH=/usr/local/gcc9.2/bin:$PATH
+export C_INCLUDE_PATH=/usr/local/gcc9.2/include:$C_INCLUDE_PATH
+export LD_LIBRARY_PATH=/usr/local/gcc9.2/lib64:$LD_LIBRARY_PATH
+wget http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.gz
+tar -zxvf  glibc-2.30.tar.gz
+mkdir build && cd build
+../configure --prefix=/usr/local/glibc2.23 --disable-profile --enable-add-ons
+
+升级glibc需要更高的make版本
+
+not found openssl
+    sudo apt-get install libssl-dev
+
+升级make
+    wget http://ftp.gnu.org/pub/gnu/make/make-4.3.tar.gz
+    tar -zxvf make-4.3.tar.gz
+    cd make-4.3
+    ./configure
+    make && make install
+
+    有一个问题就是gcc版本不能太高也不能太低，太低可能不支持c99标准 报错头文件缺少符号或者重复定义
+    如果还不行就切换make4.3或者make4.4版本
+    太高报错 Error: unknown .loc sub-directive `view‘
+    安装一个合适的gcc
+    wget http://mirrors.concertpass.com/gcc/releases/gcc-6.3.0/gcc-6.3.0.tar.gz
+    tar -zxvf gcc-6.3.0.tar.gz
+    cd gcc-6.3.0
+    ./contrib/download_prerequisites
+    mkdir build
+    cd build
+    ../configure --enable-checking=release --enable-languages=c,c++ --disable-multilib --prefix=/usr/local/gcc6.3
+    make -j8
+    make install
+        *** LIBRARY_PATH shouldn't contain the current directory when
+            export LIBRARY_PATH=$(echo $LIBRARY_PATH | sed 's/:$//; s/^://;')
+            export C_INCLUDE_PATH=$(echo $C_INCLUDE_PATH | sed 's/:$//; s/^://;')
+        error: Unable to find a suitable type for HOST_WIDE_INT
+            unset LIBRARY_PATH CPATH C_INCLUDE_PATH PKG_CONFIG_PATH CPLUS_INCLUDE_PATH INCLUDE
+            or export CPLUS_INCLUDE_PATH=
+
+        /usr/lib64/libxml2.so.2: version `LIBXML2_2.9.0′ not found (required by /usr/local/lib/libxslt.so.1)
+            wget http://xmlsoft.org/sources/libxml2-2.9.1.tar.gz
+            tar -xf libxml2-2.9.1.tar.gz
+            cd libxml2-2.9.1
+            ./configure --enable-shared --with-python=no --prefix=/usr/local/libxml2.9 --without-zlib
+            make && make install
+            sudo ln -sf /usr/lib64/libxml2.so.2.9.1 /usr/local/lib/libxml2.so.2
+            sudo ln -sf /usr/lib64/libxml2.so.2.9.1 /usr/local/lib/libxml2.so
+            看提示是哪个路径的版本不匹配
+            或者查找本地机器已经安装好的libxml
+                locate libxml2.so.2
+                /usr/local/lib/libxml2.so.2 这个是动态库路径配置的lib路径中查找的
+            
+
+WARNING: 'aclocal-1.16' is missing on your system.
+编译安装automake
+configure.ac:35: error: require Automake 1.16.1, but have 1.16
+安装1.16.1
+wget https://mirrors.sjtug.sjtu.edu.cn/gnu/automake/automake-1.16.1.tar.gz
+tar -zxvf automake-1.16.1.tar.g
+cd automake-1.16.1
+./configure
+make
+    error1
+        https://blog.51cto.com/fengyuzaitu/2454392
+make install
+
+
+注意在编译安装某一个项目的时候一定要切记
+一定要保证gcc内部的版本一致，比如gcc的bin路径，gcc的include路径，gcc的库路径一定要对应相同的gcc版本
+要不会出现头文件报错的问题。如何保证呢？
+首先我们在编译configure的时候可以指定对应的头文件和库文件路径，那么此时我们只需要确保对应的bin路径和指定
+的头文件和库文件路径是一个版本即可。其次在全局环境变量定义的文件中一定不要产生二义性。有时候必要的source或者
+重新开启一个终端是必要的。
+
+pip install的时候报错  不能找到对应的头文件
+此时有两个解决办法
+比如安装soxbindings的时候报错不能找到依赖库的sox.h的头文件，一般是pip install sox安装的问题
+我们可以选择指定的版本，如果解决不了，那么就使用源码编译安装
+注意指定安装路径到conda虚拟环境的头文件中，一般安装路径就设置到当前conda环境的根目录，其
+根目录下的include目录就是对应的虚拟环境的头文件目录
+
+
+
+如果systemctl --user没有去当前用户的systemd目录下查找对应的服务
+那么只有一个问题，就是你的环境变量XDG_CONFIG_HOME不对
+(base) [weiyutao@bogon ~]$ echo $XDG_CONFIG_HOME
+/home/weiyutao
+
+可以发现这个环境变量被定义错了，它实际上应该是/home/weiyutao/.config
+可以查找是哪个配置文件配置了它
+(base) [weiyutao@bogon ~]$ grep -rnw '/home/weiyutao' -e 'XDG_CONFIG_HOME'
+/home/weiyutao/.bashrc:70:export XDG_CONFIG_HOME=/home/weiyutao
+
+(base) [weiyutao@bogon ~]$ systemctl --user status nginx.service
+nginx.service - Weiyutao User Nginx Auto Start Service
+    Loaded: loaded (/home/weiyutao/.config/systemd/user/nginx.service, enabled)
+    Active: inactive (dead)
+
+    可以发现问题解决了
+
+注意如果用户级别的conda init失败说找不到配置文件的话
+一般是需要定义对应的环境变量 也就是CONDARC
+注意一定要在用户级别的配置文件中定义，比如 vim /.bashrc
+export CONDARC=/home/weiyutao/.conda/.condarc
+
+当前用户也可以启动系统级别的服务
+比如当前用户可以启动systemctl restart nginx
+因为系统级别的服务一般配置的install指令都是多用户执行的
+
+但是注意，如果某一个服务在该服务层面指定了启动用户，那么当前用户将无法正常启动
+比如nginx  我们可以在nginx的配置文件中指定启动的用户，比如root，那么普通
+用户将无法启动该服务，因此在root用户下如果启动了该服务，root用户查看该服务的状态将是
+running而非root用户查询的状态将是dead
+同理用户级别服务也仅限于当前用户启动，因为他们一般在install中配置单用户启动
+
+
+打包conda环境
+conda activate base
+conda install -c conda-forge conda-pack
+conda-pack -n text_audio -o text_audio_2024_5_9.tar.gz
+到另一台机器上，直接新建一个环境名称然后直接解压即可
+
+注意如果你在环境变量中配置了某一个版本的gcc，比如bin include和lib  那么
+在编译的时候一定要注意必须指定对应的gcc，否则将会出现二义性，因为如果你使用的gcc是gcc9.2而在
+编译的时候指定了另外一个版本的头文件的话，那么肯定会出现头文件和库文件不一致的情况
+
+编译的时候如果隐式声明报错，那么在-Wall的基础上加上-Wimplicit-function-declaration编译参数即可以将隐式声明报错改变
+为警告级别，不中断编译
+
+
+
+## gcc malloc.c -c -std=gnu11 -fgnu89-inline  -g -O2 -Wall -Wwrite-strings -Wundef -Werror -fmerge-all-constants -frounding-math -fno-stack-protector -Wstrict-prototypes -Wold-style-definition -fmath-errno    -DMORECORE_CLEARS=2  -ftls-model=initial-exec      -I../include -I/gl_data/soft/glibc-2.30/build/malloc  -I/gl_data/soft/glibc-2.30/build  -I../sysdeps/unix/sysv/linux/x86_64/64  -I../sysdeps/unix/sysv/linux/x86_64  -I../sysdeps/unix/sysv/linux/x86/include -I../sysdeps/unix/sysv/linux/x86  -I../sysdeps/x86/nptl  -I../sysdeps/unix/sysv/linux/wordsize-64  -I../sysdeps/x86_64/nptl  -I../sysdeps/unix/sysv/linux/include -I../sysdeps/unix/sysv/linux  -I../sysdeps/nptl  -I../sysdeps/pthread  -I../sysdeps/gnu  -I../sysdeps/unix/inet  -I../sysdeps/unix/sysv  -I../sysdeps/unix/x86_64  -I../sysdeps/unix  -I../sysdeps/posix  -I../sysdeps/x86_64/64  -I../sysdeps/x86_64/fpu/multiarch  -I../sysdeps/x86_64/fpu  -I../sysdeps/x86/fpu/include -I../sysdeps/x86/fpu  -I../sysdeps/x86_64/multiarch  -I../sysdeps/x86_64  -I../sysdeps/x86  -I../sysdeps/ieee754/float128  -I../sysdeps/ieee754/ldbl-96/include -I../sysdeps/ieee754/ldbl-96  -I../sysdeps/ieee754/dbl-64/wordsize-64  -I../sysdeps/ieee754/dbl-64  -I../sysdeps/ieee754/flt-32  -I../sysdeps/wordsize-64  -I../sysdeps/ieee754  -I../sysdeps/generic  -I.. -I../libio -I.   -D_LIBC_REENTRANT -include /gl_data/soft/glibc-2.30/build/libc-modules.h -DMODULE_NAME=libc -include ../include/libc-symbols.h    -DUSE_TCACHE=1   -DTOP_NAMESPACE=glibc -o /gl_data/soft/glibc-2.30/build/malloc/malloc.o -MD -MP -MF /gl_data/soft/glibc-2.30/build/malloc/malloc.o.dt -MT /gl_data/soft/glibc-2.30/build/malloc/malloc.o
+
+
+vim的配置文件一般在~/.vimrc中
+仅适用于当前用户
+注意.vimrc配置文件中有以下规则，结合conda
+当前用户的conda配置基础配置一般在~/.bashrc中进行配置，仅对当前用户生效
+一般情况下会指定conda的根路径
+但是需要注意的是，这个路径是当前用户执行的conda命令地址，也就是说这个路径是基于当前用户的
+配置文件生效的，在高于~/.bashrc的配置文件中定义的路径将会影响到该目录，但是一般
+conda指令不会和库执行目录/usr/bin  /usr/local/bin 冲突，因此这个问题不同考虑
+但是值得注意的，在~/.bashrc中关于conda的基础配置一定要放在所有和conda指定起冲突的配置的后面
+因为我们一般去定义PATH变量的时候都是这样定义的  export PATH=XXXX:$PATH
+如果xxx中有相同的指令，比如我们在conda中常用的python指令，如果你在conda的基础配置之后配置了
+export PATH=/usr/bin:$PATH  而/usr/bin/python是存在的
+那么按照优先级原则，你的PATH路径应该是这样的
+/usr/bin:/xxx/env/bin/python  这样当你激活xxx环境后不会优先去改环境下的bin目录查找指令
+而是去/usr/bin/下面了，因此这个要注意，因此只需要注意一点
+一般不要在vimrc中配置PATH，实在要配置的，在conda的基础指令之前配置即可
+
+
+
+
+
+volumeOption: [
+    {name: "50%", value: "0.5"},
+    {name: "75%", value: "0.75"},
+    {name: "100%", value: "1.0"},
+    {name: "125%", value: "1.25"},
+    {name: "150%", value: "1.5"},
+    {name: "175%", value: "1.75"},
+    {name: "200%", value: "2.0"},
+    {name: "250%", value: "2.5"},
+    {name: "300%", value: "2.99"}
+],
+speedOption: [
+    {name: "0.5x", value: "0.7"},
+    {name: "0.75x", value: "0.8"},
+    {name: "1.0x", value: "1.0"},
+    {name: "1.25x", value: "1.25"},
+    {name: "1.5x", value: "1.5"},
+    {name: "2.0x", value: "2.0"}
+]
+
+
+
+
+文本到视频
+sadtalker  30秒需要8分钟
+\
+
+
+MuseV
+/lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found
+找到含有对应版本的libstdc++库，然后添加到python的动态运行库中
+
+
+编译安装cmake
+./bootstrap 
+  gmake -j `grep 'processor' /proc/cpuinfo | wc -l` 
+  gmake install
+编译的时候出现
+/work/soft/cmake-3.7.2/Bootstrap.cmk/cmake: /lib64/libstdc++.so.6: version `GLIBCXX_3.4.26' not found (required by /work/soft/cmake-3.7.2/Bootstrap.cmk/cmake)
+但是已经设置了动态库搜索路径
+export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
+
+    去除LD_LIBRARY_PATH中的重复路径
+    export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | tr ':' '\n' | awk '!seen[$0]++' | paste -sd ':')
+    (base) weiyutao@/lib64$ ll libstdc++.so.6
+    lrwxrwxrwx. 1 root root 19 4月   1 17:33 libstdc++.so.6 -> libstdc++.so.6.0.19
+    前面的操作应该不能解决问题，问题还是在于指定动态搜索库有限顺序
+    export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH   注意一定要加冒号后面的动态库变量
+    如果还是不行就重新建立软链接，注意在建立软链接之前备份之前的/lib64/libstdc++.so.6   然后一定要先删除它，不能直接覆盖
+    然后ln -s 源文件b 软链接a   也就是建立一个软链接a指向原始库文件b
+
+    但是注意，如果在当前终端export设置了动态库路径，然后你使用的是普通用户，如果你使用
+    sudo的时候这个路径不会生效，因此你需要在执行sudo的时候设置动态库搜索路径
+    sudo LD_LIBRARY_PATH=/usr/local/lib64 make install
+    注意这个变量和LD_PRELOAD的区别，前者指定动态搜索库路径，后者指定库名称
+    前者export后者在执行命令前加入
+
+按照如下指令指定install安装路径，必要时还需要添加编译参数
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/jsoncpp-1.3.0 -DBUILD_SHARED_LIBS=ON ..
+
+cmake -D CMAKE_BUILD_TYPE=Release \
+      -D CMAKE_INSTALL_PREFIX=/usr/local/opencv_gcc9_cuda \
+      -D OPENCV_EXTRA_MODULES_PATH=/work/soft/opencv/opencv_contrib-4.7.0/modules \
+      -D ENABLE_FAST_MATH=1 \
+      -D CUDA_FAST_MATH=1 \
+      -D WITH_CUBLAS=1 \
+      -D WITH_CUDA=ON \
+      -D WITH_CUDNN=ON \
+      -D OPENCV_DNN_CUDA=ON \
+      -D CUDA_ARCH_BIN=6.1 \
+      -D CUDA_ARCH_PTX="" \
+      -D OPENCV_ENABLE_NONFREE=ON \
+      -D INSTALL_PYTHON_EXAMPLES=OFF \
+      -D BUILD_EXAMPLES=OFF \
+
+install jdk for centos
+rpm -qa | grep jdk
+rpm -e --nodeps 所有jdk包
+export JAVA_HOME=/work/soft/jdk1.8.0_381
+export PATH=$PATH:$JAVA_HOME/bin
+
+
+mysql in centos
+    cd /usr/local
+    tar -zxvf mysql-5.7.40-linux-glibc2.12-x86_64
+    groupadd mysql
+    useradd -r -g mysql mysql
+    sudo chown -R mysql /usr/local/mysql/
+    sudo chgrp -R mysql /usr/local/mysql/
+
+    sudo mkdir -p /data/mysql
+    sudo chown mysql:mysql -R /data/mysql
+
+    sudo vim /etc/my.cnf
+    [mysqld]
+    bind-address=0.0.0.0
+    port=3306
+    user=mysql
+    basedir=/usr/local/mysql
+    datadir=/data/mysql
+    socket=/tmp/mysql.sock
+    log-error=/data/mysql/mysql.err
+    pid-file=/data/mysql/mysql.pid
+    #character config
+    character_set_server=utf8mb4
+    symbolic-links=0
+    explicit_defaults_for_timestamp=true
+
+    # 启动服务
+    sudo ./mysqld --defaults-file=/etc/my.cnf --basedir=/usr/local/mysql/ --datadir=/data/mysql/ --user=mysql --initialize
+
+    # 查看初始化密码
+    sudo cat /data/mysql/mysql.err
+
+    sudo cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
+    service mysql start
+    修改root密码
+    mysql -u root -p   注意启动mysql的指令一定是/usr/local/mysql/bin/mysql 而不是系统自带的
+    ALTER USER 'root'@'localhost' IDENTIFIED BY '12345';
+redis in centos
+    cd redis
+    make
+    sudo make install PREFIX=/usr/local/redis-2.4.5
+    sudo mkdir -p /usr/local/redis-2.4.5/conf
+    sudo cp redis.conf /usr/local/redis-2.4.5/conf
+    直接启动
+    /usr/local/redis-2.4.5/bin/redis-server /usr/local/redis-2.4.5/conf/redis.conf
+startup.sh  -m standalone
+
+视觉系统部署
+    首先启动所有的服务  
+    nacos、redis、mysql
+    导入数据库，这里直接选择解压，但是注意，因为之前设置了mysql用户
+    因此我们需要给对应的数据库添加mysql权限，即给/data/mysql设置权限为mysql:mysql
+    这样我们才能正常访问对应的数据库，否则报错没有权限
+
+注意在执行jar包的时候，如果使用的是普通用户，有可能会出现访问路径无权限的问题，比如
+mysql会创建临时文件，但是普通用户没有这个权限，此时我们只需要使用sudo执行jar包即可。
+
+安装opencv的时候找不到ffmpeg
+    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/ffmpeg/lib/pkgconfig
+
+    未定义的引用：
+        一般主要是两个原因造成的，编译器版本不同（项目中使用的三方库使用了不同版本的编译器）
+        第二个原因是动态度搜索路径的优先顺序设置的问题，导致搜索到了低版本的动态库文件
+    注意cmake和make是独立的，升级cmake不一定要升级make
+
+    安装完opencv后再自己的项目中使用的时候会出现如下情况
+    即你编译opencv使用的gcc指令和你的项目使用的gcc指令不一样，也就是编译器版本不一致
+    这个问题我们一般无法察觉，因为我们想当然的以为我们定义了编译器的优先搜索路径，但是当你在使用cmake生成makefile的时候
+    是根据cmake搜索到的gcc和g++指令进行编译的，这个时候cmake可能会搜索到其他版本的指令，这个就会导致使用了不同版本的编译器
+    此时一般会报错未定义的引用，也即某一个库中不存在某一个版本的东西。这是典型的编译器不同造成的原因
+    注意还有就是一般cmake会使用cc作为gcc的代理指令，如果你升级了gcc版本，那么一般情况下是不会有cc这个指令的，此时你只需要建立软链接即可
+    ln -s /usr/local/bin/gcc /usr/local/bin/cc
+        那么如果发现cmake搜索的cc和cpp指令不是自己想要的怎么办。
+        
+        export CC=/usr/local/bin/cc
+        export CXX=/usr/local/bin/c++
+        如上设置不仅只对cmake生效，对整个使用编译的指令生效。
+
+
+../general/libGENERAL.so：对‘Json::FastWriter::write[abi:cxx11](Json::Value const&)’未定义的引用
+谁对谁未定义的引用
+比如opencv。。.so 对 标准库函数未定义的引用
+
+opencv这个动态库是安装成功的，只不过在编译新项目的时候使用到了opencv这个库
+而opencv是使用高版本的编译器编译的，而新项目使用的是低版本的编译器，所以造成了这个情况
+
+同理，libGENERAL.so这个库编译安装好了，但是在生成另一个库文件的时候使用到了这个库，
+也就是说在生成另一个库文件的时候使用的编译器和编译libGENERAL.so这个库的编译器版本不一致
+因此两个解决方案
+    第一看是否是不能找到需要的库文件
+    第二看需要的库文件的编译器版本和现有项目的编译器版本是否一致
+
+    最后的问题是编译jsoncpp的时候使用的是低版本编译器，因此在使用cmake的时候一定要注意当前
+    扫苗到的编译器版本，一定要使用自己想要的版本。
+
+
+注意mybatis数据库中有区分大小写一说。
+
+因为在java中执行脚本默认不会使用当前用户的环境，比如动态库LD和PATH，因此需要指定，一般是在执行jar包之前指定
+在运行jar包的命令中或者sh文件中指定，测试了一下，LD_LIBRARY_PATH=/usr/local/lib64在sh文件中适用。但是在命令行不适用，不知为什么
+但是在上面我们得到的结论是LD_LIBRARY_PATH=/usr/local/lib64  这个变量后面加路径，而LD_PRELOAD后面加库文件名称
+-Djava.library.path后面也是库目录
+    在sh文件中指定动态库搜索路径
+    nohup sudo LD_LIBRARY_PATH=/usr/local/lib64 /work/soft/jdk1.8.0_381/bin/java -jar "$AI_SERVER" > ${AI_LOG_FILE} 2>&1 &
+    在java命令中指定动态库搜索路径
+    java -Djava.library.path=/usr/local/lib64/ -jar pd-ai-server.jar
+
+LD_LIBRARY_PATH后面是目录，LD_PRELOAD后面是库文件路径。
+
+  # 注意使用sudo执行的jar包，在创建文件的时候会设置最低root权限，导致使用nginx无法访问对应的资源
+  # 可以使用export导入对应的动态运行库，然后直接在后台执行jar包即可。
+
+CondaPackError:
+Files managed by conda were found to have been deleted/overwritten in the
+following packages:
+    解决办法：pip install conda-pack不是conda install
+    或者使用base环境进行打包，而不是在指定的环境内打包
+    conda deactivate
+    pip install conda-pack
+    conda-pack -n virtual_human -o virtual_human.tar.gz
+
+libreoffice
+    wget https://download.documentfoundation.org/libreoffice/src/7.2.2/libreoffice-7.2.2.2.tar.xz​
+    wget https://download.documentfoundation.org/libreoffice/src/7.2.2/libreoffice-translations-7.2.2.2.tar.xz​
+    tar -xf libreoffice-7.2.2.2.tar.xz​
+    tar -xf libreoffice-translations-7.2.2.2.tar.xz​
+    cd libreoffice-7.2.2.2
+    ./autogen.sh --with-lang=zh-CN
+    CentOS 7 编译LibreOffice 时提示 cpan -i Digest::MD5
+        yum -y install cpan
+        yum install perl-Test-Simple
+        cpan -i  Digest::MD5
+    configure: error: gperf not found but needed. Install it.
+    Error running configure at ./autogen.sh line 322.
+        sudo yum install gperf
+
+
+Command: "git" -C "/work/ai/weiyutao/stable-diffusion-webui/repositories/stable-diffusion-webui-assets" fetch --refetch --no-auto-gc Error code: 129
+conda install git即可解决
+
+
+make的时候 
+f951: 错误：-march= switch所带参数(skylake-avx512)不正确
+    make  NO_AVX512=1
+/usr/bin/ld: 找不到 -lgfortran
+    找不到对应的动态库
+
+
+yum update
+    Errors during downloading metadata for repository 'appstream'
+    CentOS-8 - AppStream 70 B/s | 38 B 00:00
+    Error: Failed to download metadata for repo 'AppStream': Cannot prepare internal mirrorlist: No URLs in mirrorlist
+
+    cd /etc/yum.repos.d/
+    sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+    yum update -y
+
+
+centos是基于redhat商业软件构建的免费linux版本
+    cat /etc/centos-release 查看linux发行版本
+    uname -a 查看linux内核
+
+linux install miniconda3
+    mkdir -p ~/miniconda3
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+    rm -rf ~/miniconda3/miniconda.sh
+    ~/miniconda3/bin/conda init bash
+    ~/miniconda3/bin/conda init zsh
+    source ~/.bashrc
+
+chatglm
+    fintune
+    pip install -r requirement
+    _configtest.c:2:10: fatal error: mpi.h: No such file or directory
+          2 | #include <mpi.h>
+    sudo apt install libopenmpi-dev
+    pip install mpi4py
+    
+    微调
+    python finetune_hf.py data/AdvertiseGen_fix/ /root/autodl-tmp/chatglm3-6b/ configs/lora.yaml
+    error: AttributeError: 'NoneType' object has no attribute 'to'
+    pip install transformer==4.40.0
+
+    推理
+    python inference_hf.py output/checkpoint-3000/ --prompt "类型#裙*版型#显瘦*材质#网纱*风格#性感*裙型#百褶*裙下摆#压褶*裙长#连衣裙*裙衣门襟#拉链*裙衣门襟#套头*裙款式#拼接*裙款式#拉链*裙款式#木耳边*裙款式#抽褶*裙款式#不规则"
+
+当训练不正常中断的时候可能会出现内存占用的情况，此时需要清除掉对应的进程，但是使用top查不到对应的进程
+此时可以专门查看占用nvidia的资源进程
+    apt-get install psmisc
+    fuser -v /dev/nvidia*
+    kill -9 process_id
+
+大模型显存
+
+权重占用显存
+    fp32、fp16、bf16、int8
+    int8 1*参数量
+    fp16 bf16 2*参数量
+    fp32 4*参数量
+    llama 13B 采用bf16保存 显存占用需要 2*13=26G
+    比如我使用fp16,1.8B参数量  占用的显存就是 2*1.8=3.6
+
+    float32占用4个字节
+    7B参数量为70亿
+    占用显存大小为70*4=280亿字节(Bytes)
+    1KB = 1024 Bytes
+    1MB = 1024KB
+    1GB = 1024MB
+    1GB = 1024*1024*1024 = 10 7374 1824
+    280 0000 0000 Bytes ≈ 26G
+
+训练占用显存
+    权重占用同上
+    优化器 3*4*参数量
+    梯度 fp32（4*参数量） fp16（2*参数量）
+    激活状态：根据batch和token等数据决定
+
+推理占用显存
+    包含模型权重占用显存和前向计算开销占用显存 20%的模型权重显存
+    因此推理的显存占用是1.2*模型显存
+
+总结：以Adamw优化器，混合精度，选择性重计算llama13B为例
+    训练显存占用：模型内存+优化器内存+梯度内存+激活内存=26+12*13+26+14.2=222.2G
+    推理：1.2*（2*13）=31.2G
+
+
+
+
+vscode代码不高亮
+    重装pylance插件一般可以解决
+
+error: importlib.metadata.PackageNotFoundError: No package metadata was found for bitsandbytes
+    pip install bitsandbytes
+
+ImportError: `rapidocr-onnxruntime` package not found, please install it with `pip install rapidocr-onnxruntime`
+ImportError: cannot import name '_datasets_server' from 'datasets.utils'
+    pip uninstall -y datasets
+    pip install --no-cache-dir --ignore-installed --force-reinstall --no-warn-conflicts datasets==2.18.0
+
+
+sudo apt-get update
+sudo apt-get install lsof
+
+./nodebb start
+/usr/local/nginx/sbin/nginx -c /work/soft/NodeBB/nginx_nodebb.conf -p /work/soft/NodeBB/
+use the root account to operate these command above to start the
+nodebb server.
+    aliyun 
+    http://59.110.166.51/
+    http://codersalliancehub.com/
+
+删除目录下的内容并显示删除掉多少文件
+清理autodl系统盘
+du -sh /root/miniconda3/pkgs/ && rm -rf /root/miniconda3/pkgs/*
+du -sh /root/.cache && rm -rf /root/.cache
+du -sh /tmp/ && rm -rf /tmp/
+
+AttributeError: module 'numpy' has no attribute 'int'.
+    pip uninstall -y numpy
+    pip install "Numpy==1.23.5"
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+    update the paddle version
+
+
+grep: warning: GREP_OPTIONS is deprecated; please use an alias or script
+    unset GREP_OPTIONS
+
+验证paddle是否安装成功
+    import paddle.fluid as fluid
+    fluid.install_check.run_check()
+
+# 文本识别效果不好
+# ch_ppocr_server_v2.0_det_infer, ch_ppocr_server_v2.0_rec_infer 中文大尺寸检测和识别模型
+# 效果反而没有小尺寸的模型好。ch_PP-OCRv3_det_infer, ch_PP-OCRv3_rec_infer
+python3 predict_system.py \
+    --image_dir=./docs/table/table1.png \
+    --det_model_dir=inference/ch_ppocr_server_v2.0_det_infer \
+    --rec_model_dir=inference/ch_ppocr_server_v2.0_rec_infer \
+    --rec_char_dict_path=../ppocr/utils/ppocr_keys_v1.txt \
+    --table_model_dir=inference/ch_ppstructure_mobile_v2.0_SLANet_infer \
+    --table_char_dict_path=../ppocr/utils/dict/table_structure_dict.txt \
+    --layout_model_dir=inference/picodet_lcnet_x1_0_fgd_layout_cdla_infer \
+    --layout_dict_path=./inference/layout_cdla_dict.txt \
+    --vis_font_path=../doc/fonts/simfang.ttf \
+    --recovery=True \
+    --output=../output/
+
+# 文本识别效果好
+# 中文版面分析模型，可以识别表格、图片、图片标题、表格标题、页眉、页脚和公式等
+# 有可能会将文本区域识别为图片，也有可能将表格区域识别为文本区域
+python3 predict_system.py \
+    --image_dir=./docs/table/table1.png \
+    --det_model_dir=inference/ch_PP-OCRv3_det_infer \
+    --rec_model_dir=inference/ch_PP-OCRv3_rec_infer \
+    --rec_char_dict_path=../ppocr/utils/ppocr_keys_v1.txt \
+    --table_model_dir=inference/ppyolov2_r50vd_dcn_365e_tableBank_latex \
+    --table_char_dict_path=inference/layout_table_dict.txt \
+    --layout_model_dir=inference/picodet_lcnet_x1_0_fgd_layout_cdla_infer \
+    --layout_dict_path=./inference/layout_cdla_dict.txt \
+    --vis_font_path=../doc/fonts/simfang.ttf \
+    --recovery=True \
+    --output=../output/
+
+# 待定，效果不错，可以识别到文本和表格区域，但是这个模型是英文专用表格识别
+# 肯定不会将表格区域识别为文本和图片区域，但是无法识别真实的文本和图片区域
+# 还需要找到中英文的 文本、表格、格式识别
+# picodet_lcnet_x1_0_fgd_layout_table_infer 英文表格区域识别模型
+python3 predict_system.py \
+    --image_dir=./docs/table/1.png \
+    --det_model_dir=inference/ch_PP-OCRv3_det_infer \
+    --rec_model_dir=inference/ch_PP-OCRv3_rec_infer \
+    --rec_char_dict_path=../ppocr/utils/ppocr_keys_v1.txt \
+    --table_model_dir=inference/ch_ppstructure_mobile_v2.0_SLANet_infer \
+    --table_char_dict_path=../ppocr/utils/dict/table_structure_dict_ch.txt \
+    --layout_model_dir=inference/picodet_lcnet_x1_0_fgd_layout_table_infer \
+    --layout_dict_path=./inference/table.txt \
+    --vis_font_path=../doc/fonts/simfang.ttf \
+    --recovery=True \
+    --output=../output/
+
+# 测试下英文的 版面分析模型，还有一些专门的表格区域检测模型
+python3 predict_system.py \
+    --image_dir=./docs/table/table6.jpeg \
+    --det_model_dir=inference/ch_PP-OCRv3_det_infer \
+    --rec_model_dir=inference/ch_PP-OCRv3_rec_infer \
+    --rec_char_dict_path=../ppocr/utils/ppocr_keys_v1.txt \
+    --table_model_dir=inference/ch_ppstructure_mobile_v2.0_SLANet_infer \
+    --table_char_dict_path=../ppocr/utils/dict/table_structure_dict_ch.txt \
+    --layout_model_dir=inference/picodet_lcnet_x1_0_fgd_layout_table_infer \
+    --layout_dict_path=./inference/table.txt \
+    --vis_font_path=../doc/fonts/simfang.ttf \
+    --recovery=True \
+    --output=../output/
+
+paddleocr
+    git clone xxx
+    cd PaddleOCR && pip install -r requirements.txt
+    cd ppstructure/recovery && pip install -r 
+    pip install premailer openpyxl
+
+
+# docker操作
+    修改镜像源
+        修改docker配置文件 /etc/docker/daemon.json
+        {
+        ...
+        "registry-mirrors": ["https://hub.dockerx.org"]
+        ...
+        }
+        然后重启Docker服务，此时就可以快速拉取镜像了 sudo systemctl daemon-reload systemctl restart docker
+    去dockerhub上选择合适的镜像
+    docker pull paddlepaddle/paddle:3.0.0b1-gpu-cuda11.8-cudnn8.6-trt8.5
+    docker run -it --gpus=all --network host --shm-size=16g --name weiyutao_ocr  paddlepaddle/paddle:3.0.0b1-gpu-cuda11.8-cudnn8.6-trt8.5
+    docker run -it --gpus=all --network host --shm-size=16g --name ocr_ner_version1.0 nvidia/cuda:12.4.1-cudnn-devel-ubuntu20.04
+    docker start weiyutao_ocr
+    docker stop weiyutao_ocr
+    docker exec -it weiyutao_ocr bash
+    docker cp /root/transfer_file_temp/Miniconda3-py312_24.5.0-0-Linux-x86_64.sh weiyutao_ocr:/work/soft_tar_file
+
+    # 查询docker容器id
+    docker ps 
+
+    # 提交容器为镜像
+    docker commit cb1a72a21b10 ocr_ner_version1.0 
+
+    # 删除镜像
+    docker rmi image_id
+
+    # 根据刚才创建好的镜像创建容器并执行开启镜像内服务指令
+    docker run -it --gpus=all --network host --shm-size=16g --name ocr_ner ocr_ner_version1.0:latest
+    
+    # 在容器中启动服务
+    bash /work/image_docx/image_docx_starter.sh
+
+    # 打包docker镜像
+    docker save -o ocr_ner.tar ocr_ner_version1.0:latest
+
+    # 使用打包好的镜像创建镜像
+    docker load -i ocr_ner.tar
+
+
+RuntimeError: can't start new thread
+    pip config --user set global.progress_bar off
+
+
+/**********************************************************************
+ * Copyright (C) 2023. IEucd Inc. All rights reserved.
+ * @Author: weiyutao
+ * @Date: 2024-08-15 13:42:06
+ * @Last Modified by: weiyutao
+ * @Last Modified time: 2024-08-15 13:42:06
+ * @Description: some problems we have meet.
+***********************************************************************/
+# args 捕获位置参数信息
+    # kwds 捕获关键字参数信息
+    # list = [1, 2, 3, 4]
+    # dict = {'a': 1, 'b': 2}
+    # 可以直接传递 list和dict  *list解析为位置参数，**dict解析为关键字参数
+
+
+serpapi调用google search
+1、https://serper.dev/  注册并获得api_key
+2、python调用
+os.environ["SERPER_API_KEY"] = "0853f6c4f264126cc4755972f75f6ac8ecf8ccb1"
+search = GoogleSerperAPIWrapper(k=10, tbs="qdr:y")
+search.run("特朗普")
+
+tuple的特性  不可变性，可哈希的，可作为字典的键
+    my_dict = {}
+    my_dict[(1, 'a', 2)] = '12234'
+ apt-get install libnss3\                         ║
+║         libnspr4\                                    ║
+║         libcups2\                                    ║
+║         libxrandr2\                                  ║
+║         libgbm1  
+
+ImportError: cannot import name 'builder' from 'google.protobuf.internal'
+    pip install protobuf --upgrade
+
+
+pip install protobuf==3.19
+
+ERROR: Unexpected BUS error encountered in DataLoader worker. This might be caused by insufficient shared memory (shm), please check whether use_shared_memory is set and storage space in /dev/shm is enough
+    df -h /dev/shm
+    Filesystem      Size  Used Avail Use% Mounted on
+    shm              64M   48M   17M  74% /dev/shm
+    扩充shm
+    已经创建好了就不能更改了
+    docker run -it --gpus=all --network host --shm-size=16g --name weiyutao_ocr  paddlepaddle/paddle:3.0.0b1-gpu-cuda11.8-cudnn8.6-trt8.5
+
+查看docker的资源占用进程，一般用来强制终止docker里面在后台运行的训练脚本
+宿主机里面查看进程号
+    docker exec -it [container_id_or_name] top
+docker里面终止进程
+    kill -9 <PID>
+
+强制终止所有 以 python3 执行的进程
+ps -aux | grep '[p]ython3' | awk '{print $2}' | xargs kill -9
+
+wc -l pCLUE_train_1.json # 查看数据的数量
+
+ModuleNotFoundError: No module named 'frontend'
+    pip install -U PyMuPDF
+
+国内服务器开启国外代理
+export http_proxy=http://rxcaijinixiang:UkBDtolwACl8ttOG@proxy.packetstream.io:31112
+export https_proxy=http://rxcaijinixiang:UkBDtolwACl8ttOG@proxy.packetstream.io:31112
+
+export http_proxy=http://5TVUY1XC:91E630BB6E7Cs@oversea.tunnel.qg.net:14034
+export https_proxy=https://5TVUY1XC:91E630BB6E7Cs@oversea.tunnel.qg.net:14034
+
+
+os.environ['http_proxy'] = 'http://rxcaijinixiang:UkBDtolwACl8ttOG@proxy.packetstream.io:31112'
+os.environ['https_proxy'] = 'http://rxcaijinixiang:UkBDtolwACl8ttOG@proxy.packetstream.io:31112'
+
+openai.InternalServerError: local subnets are not available
+ValueError: Ollama call failed with status code 502. Details: local subnets are not available
+    取消代码或终端中使用的代理
+    os.environ['http_proxy'] = ''
+    os.environ['https_proxy'] = ''
+
+
+正交基
+
+一在xyz三维坐标系下的坐标点，总会有一组3个正交基符合这样的形式
+i', j', k' 是正交基，向量形式
+正交基首先自身是正交向量，即向量的内积为0
+原始坐标 @ 基函数 = 基函数对应的坐标
+[x, y, z] @ [i', j', k'] = [x', y', z']
+(1, 3) @ (3, 3) = (1, 3)
+那么最后计算得到的这个坐标有什么特点呢？
+我们可以使用基函数（[i', j', k']）和基函数对应的坐标（[x', y', z']）复原得到原始坐标
+
+[i', j', k'] @ [x', y', z']^T = [x, y, z]^T
+(3, 3) @ (3, 1) = (3, 1)
+
+passwd  更改当前用户密码
+sudo passwd username 使用root用户更改其它用户密码
+
+
+@classmethod  使用场景：类方法，不需要实例化对象访问的方法
+    替代构造函数
+    不需要实例化对象即可以访问和修改类属性和类方法
+    可以将与类相关但是不需要实例状态的方法放在类方法中，避免创建全局函数
+    比如pydantic类中的@model_validator(mode="before")，这个注解是在初始化实例之前
+    也就是可以搭配@classmethod使用
+    @model_validator(mode="before")
+    @classmethod
+    def _init_with_instruction(cls, values):
+    # cls是类本身，可以使用cls访问类的属性和方法
+
+@staticmethod
+    def _init_with_instruction(values):
+    注意staticmethod和classmethod的区别
+    前者没有cls或者self，因此不可以访问实例或类的属性
+    但是同样都可以是使用类名或者实例调用
+因此classmethod较staticmethod更加灵活多样，适合对整个类进行操作的场景。而staticmethod仅仅是
+一个普通函数，适合那些不需要访问任何实例或类的属性方法的独立功能。
+
+
+def __str__(self):
+        return self.__class__.__name__
+    相当于to_string，返回用户关注的类信息
+
+def __repr__(self):
+        return self.__str__()
+    返回开发者关注的类信息，但是这里的案例返回的结果一样
+
+@property
+def project_name(self):
+    return self.name
+
+    使用property注解的方法可以直接作为属性访问而不需要使用()
+    print(obj.project_name) # whoami
+
+@project_name.setter
+def project_name(self, name):
+    self.name = name
+
+obj.project_name = '____whoami____'
+print(obj.project_name)  # ____whoami____
+
+
+并不是训练批次越大效率越高，这取决于MEMORY, GPU AND CPU
+如果你的显存、内存和CPU都很小，那就设置更小的batch将会得到更好的效果
+yolov10默认的验证批次为训练批次的2倍
+
+ps aux | grep "python scripts.py" | grep -v grep | awk '{print $2}' | xargs sudo kill -9
+
+https://open.ys7.com/v3/openlive/BD0632136_1_1.m3u8?expire=1733554121&id=785155763590418432&t=800c1110565c05b603202043a1f724e2f11c4d492595a21e330a17041a0bfd9f&ev=100
+https://open.ys7.com/v3/openlive/BD3202818_1_1.m3u8?expire=1733554041&id=785155427533705216&t=9d350a2d764f75bfb34ca6f0efe15ab54d8e9dbf00fd03950e1e7f7c35a63a79&ev=100
